@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Google Pixel 10a live session</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Google Sans', sans-serif;
+      overscroll-behavior-y: none;
+      background: #f1f3f4;
+      color: #3c4043;
+    }
+    
+    /* Glassmorphism Effect */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+      border-radius: 2rem;
+    }
+
+    /* Pulsating Timer Animation */
+    .pulse-timer {
+      animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.5); }
+      70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(66, 133, 244, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+    }
+
+    .animate-in {
+      animation: slide-up 0.6s ease-out forwards;
+    }
+
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive Podium heights */
+    .podium-1 { height: clamp(140px, 20vh, 200px); background: linear-gradient(135deg, #fbbc05, #f9ab00); }
+    .podium-2 { height: clamp(100px, 15vh, 160px); background: linear-gradient(135deg, #bdc1c6, #9aa0a6); }
+    .podium-3 { height: clamp(70px, 10vh, 120px); background: linear-gradient(135deg, #e37400, #b06000); }
+
+    /* Background blobs for Desktop */
+    .blob {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.2;
+      border-radius: 50%;
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+        "lucide-react": "https://esm.sh/lucide-react@0.378.0"
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <div class="blob bg-blue-400 -top-40 -left-40 hidden md:block"></div>
+  <div class="blob bg-red-300 -bottom-40 -right-40 hidden md:block"></div>
+
+  <div id="root" class="flex-1 flex flex-col"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useEffect } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { initializeApp } from 'firebase/app';
+    import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+    import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, serverTimestamp, query } from 'firebase/firestore';
+    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2 } from 'lucide-react';
+
+    const firebaseConfig = JSON.parse('{"apiKey": "AIzaSyCNw2VGI326G6npQLr5inYwb9ZDVMgy6JA", "authDomain": "bootcamp-4b851.firebaseapp.com", "projectId": "bootcamp-4b851", "storageBucket": "bootcamp-4b851.firebasestorage.app", "messagingSenderId": "579476922275", "appId": "1:579476922275:web:5476fad85409cc444a0416"}');
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = 'google-pixel-10a-live-session';
+
+    const QUESTIONS = [
+      { q: "Welche Funktion würde einem Hobby-Fotografen helfen, um bessere Fotos zu machen?", options: ["Kamera-Coach", "Veo3", "Magisches Auge", "Pixel-Trainer"], correct: 0 },
+      { q: "Wie viel leistungsstärker ist der Zoom des Pixel 10 Pro im Vergleich zum Pixel 9 Pro?", options: ["Er ist derselbe", "Doppelt so leistungsstark", "Mehr als 3x so leistungsstark", "Mehr als 10x so leistungsstark"], correct: 2 },
+      { q: "Worüber kannst du mit Gemini Live auf Pixel sprechen?", options: ["Was du auf dem Bildschirm siehst", "Was mit deiner Kamera geteilt wird", "Beides", "Gar nichts von beidem"], correct: 2 },
+      { q: "Was können deine KI-generierten Videos dank Gemini und Veo3 bieten?", options: ["Sound", "Sprache", "Menschen", "Alles davon"], correct: 3 },
+      { q: "Welche Kamera-Ausstattung bietet das Pixel 10 Pro (XL)?", options: ["Nur Weitwinkel", "Dual-Kamera", "Profi-Dreifachkamerasystem mit 50/48/48 MP", "Dual-Kamera mit 100 MP"], correct: 2 },
+      { q: "Wie viel RAM bietet das Pixel 10 Pro (XL) und das Pixel 10 Pro Fold?", options: ["8GB", "12GB", "16GB", "14GB"], correct: 2 },
+      { q: "Welcher Sicherheitschip ist in der Pixel 10 Serie enthalten?", options: ["Titan M", "Nox Secure", "Titan M2", "Google Shield Protect"], correct: 2 },
+      { q: "Welches Displayglas kommt beim Pixel 10 zum Einsatz?", options: ["Aluminum Glass", "Saphierglas", "Corning® Gorilla® Glass Victus® 2", "Liquid OLED"], correct: 2 },
+      { q: "Wie lang können mit Veo3 erzeugte Videos werden?", options: ["3 Sekunden", "5 Sekunden", "8 Sekunden", "10 Sekunden"], correct: 2 },
+      { q: "Welches Betriebssystem nutzt die Pixel 10 Serie?", options: ["Android 10", "Android 13", "Android 16", "Android 11"], correct: 2 },
+      { q: "Was macht das Aluminium in Raumfahrtqualität des Pixel 10 Pro zu einer nachhaltigen Wahl?", options: ["Es ist zu 100 % recycelt.", "Es wird aus alten Raumschiffen hergestellt.", "Es wird aus Aluminiumdosen hergestellt.", "Es besteht vollständig aus reinem Aluminium."], correct: 0 },
+      { q: "Wie lange wird das Pixel laut Google mit der Zeit immer besser (Updates)?", options: ["7 Jahre", "5 Jahre", "3 Jahre", "2 Jahre"], correct: 0 },
+      { q: "Wie hoch ist der maximale Speicher des Pixel 10?", options: ["64GB", "128GB", "512GB", "256GB"], correct: 3 },
+      { q: "Welche Speichergröße bietet das Pixel 10 Pro XL erstmals standardmäßig?", options: ["128GB", "512GB", "256GB", "64GB"], correct: 2 },
+      { q: "Wie ruft man Gemini auf dem Pixel auf?", options: ["Power-Taste lang drücken", "Lauter-Taste", "Display antippen", "Schütteln"], correct: 0 }
+    ];
+
+    const TimerCircle = ({ seconds }) => (
+      <div className="flex justify-center mb-6 md:mb-10">
+        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white border-4 border-blue-500 flex flex-col items-center justify-center pulse-timer shadow-2xl relative z-10">
+          <Clock size={16} className="text-blue-500 mb-1 hidden md:block" />
+          <span className="text-2xl md:text-3xl font-bold text-gray-800">
+            {Math.floor(seconds / 60)}:{(seconds % 60).toString().padStart(2, '0')}
+          </span>
+        </div>
+      </div>
+    );
+
+    const LoginScreen = ({ onJoin }) => {
+      const [name, setName] = useState('');
+      return (
+        <div className="flex-1 flex items-center justify-center p-4 md:p-8 animate-in">
+          <div className="glass-panel w-full max-w-md p-8 md:p-12 text-center">
+            <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl text-white">
+              <Smartphone size={40} />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Pixel 10a</h1>
+            <p className="text-blue-600 font-bold uppercase tracking-widest text-xs mb-10">Live Session Training</p>
+            <form onSubmit={(e) => { e.preventDefault(); if(name) onJoin(name); }} className="space-y-6">
+              <div className="text-left">
+                <label className="block text-sm font-bold text-gray-500 mb-2 ml-1">Dein Vor- und Nachname</label>
+                <input 
+                  type="text" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:outline-none bg-white/50 text-lg transition-all"
+                  placeholder="Max Mustermann"
+                  required
+                />
+              </div>
+              <button 
+                type="submit"
+                disabled={!name}
+                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                Teilnehmen <ArrowRight size={22} />
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    };
+
+    const QuizScreen = ({ question, index, total, onAnswer, timeLeft }) => (
+      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4 md:p-8 animate-in overflow-y-auto">
+        <TimerCircle seconds={timeLeft} />
+        <div className="mb-6 flex justify-center">
+          <div className="bg-blue-50 text-blue-700 px-5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-blue-100">
+            Frage {index + 1} von {total}
+          </div>
+        </div>
+        <div className="glass-panel p-8 md:p-12 mb-8 border-l-8 border-l-blue-500">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+            {question.q}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 gap-4">
+          {question.options.map((opt, i) => (
+            <button
+              key={i}
+              onClick={() => onAnswer(i)}
+              className="w-full p-5 md:p-6 text-left bg-white rounded-2xl shadow-sm border-2 border-transparent hover:border-blue-500 hover:shadow-md active:bg-blue-50 transition-all font-medium text-gray-700 flex justify-between items-center group text-lg"
+            >
+              <span>{opt}</span>
+              <div className="w-7 h-7 rounded-full border-2 border-gray-200 group-hover:border-blue-500 transition-colors flex items-center justify-center">
+                <div className="w-3 h-3 rounded-full bg-blue-500 scale-0 group-active:scale-100 transition-transform"></div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
+    const FeedbackScreen = ({ onFinish }) => {
+      const [r1, setR1] = useState(0);
+      const [r2, setR2] = useState(0);
+      return (
+        <div className="flex-1 flex items-center justify-center p-4 animate-in">
+          <div className="glass-panel w-full max-w-md p-10 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">Feedback</h2>
+            <div className="mb-10">
+              <p className="text-gray-500 mb-4 font-bold uppercase text-xs tracking-widest">Wie war das Training?</p>
+              <div className="flex justify-center gap-4">
+                {[1,2,3,4,5].map(s => (
+                  <button key={s} onClick={() => setR1(s)} className="transform transition-transform hover:scale-120">
+                    <Star size={40} fill={r1 >= s ? "#fbbc05" : "none"} color={r1 >= s ? "#fbbc05" : "#dadce0"} strokeWidth={1.5} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-12">
+              <p className="text-gray-500 mb-6 font-bold uppercase text-xs tracking-widest">Empfehlung an Kunden?</p>
+              <div className="flex justify-center gap-3">
+                {[1,2,3,4,5].map(v => (
+                  <button 
+                    key={v} 
+                    onClick={() => setR2(v)} 
+                    className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl font-bold text-lg transition-all ${r2 === v ? 'bg-blue-600 text-white shadow-xl scale-110' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button 
+              onClick={() => onFinish(r1, r2)}
+              disabled={!r1 || !r2}
+              className="w-full py-5 bg-green-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-green-100 disabled:opacity-50 transition-all active:scale-95"
+            >
+              Ergebnisse laden
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const PodiumScreen = ({ leaderboard, score, name }) => {
+      const top3 = [...leaderboard].sort((a,b) => b.score - a.score).slice(0, 3);
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 animate-in max-w-4xl mx-auto w-full">
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-12 text-center">Live Session Podium</h1>
+          
+          <div className="flex items-end justify-center gap-2 md:gap-6 mb-12 w-full max-w-lg">
+            {/* Platz 2 */}
+            <div className="flex flex-col items-center flex-1">
+              <div className="mb-3 text-center">
+                <p className="text-xs font-bold text-gray-400 truncate max-w-[80px] md:max-w-none">{top3[1]?.name || '-'}</p>
+                <p className="text-[10px] text-gray-400">{top3[1]?.score || 0} Pkt</p>
+              </div>
+              <div className="podium-2 w-full flex items-center justify-center shadow-lg relative overflow-hidden group">
+                <span className="text-4xl font-bold text-white/50">2</span>
+              </div>
+            </div>
+            {/* Platz 1 */}
+            <div className="flex flex-col items-center flex-1">
+              <Trophy size={48} className="text-yellow-500 mb-4 animate-bounce" />
+              <div className="mb-3 text-center">
+                <p className="text-sm font-bold text-gray-800 truncate max-w-[100px] md:max-w-none">{top3[0]?.name || '-'}</p>
+                <p className="text-xs text-blue-600 font-bold">{top3[0]?.score || 0} Pkt</p>
+              </div>
+              <div className="podium-1 w-full flex items-center justify-center shadow-2xl relative overflow-hidden">
+                <span className="text-5xl font-bold text-white/50">1</span>
+                <div className="absolute top-0 left-0 w-full h-1 bg-white/20"></div>
+              </div>
+            </div>
+            {/* Platz 3 */}
+            <div className="flex flex-col items-center flex-1">
+              <div className="mb-3 text-center">
+                <p className="text-xs font-bold text-gray-400 truncate max-w-[80px] md:max-w-none">{top3[2]?.name || '-'}</p>
+                <p className="text-[10px] text-gray-400">{top3[2]?.score || 0} Pkt</p>
+              </div>
+              <div className="podium-3 w-full flex items-center justify-center shadow-lg relative overflow-hidden">
+                <span className="text-3xl font-bold text-white/50">3</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-panel w-full max-w-md p-8 md:p-10 text-center shadow-2xl">
+            <p className="text-gray-400 font-bold uppercase text-xs tracking-widest mb-2">Deine Leistung</p>
+            <p className="text-5xl md:text-6xl font-bold text-blue-600 mb-6">{score} <span className="text-lg text-gray-300">Pkt</span></p>
+            <div className="pt-8 border-t border-gray-100 flex items-center justify-center gap-3">
+              <CheckCircle2 className="text-green-500" size={24} />
+              <p className="text-gray-600 font-medium">{name}, tolle Arbeit!</p>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const AdminDashboard = ({ gameState, users, onStart, onStop, onReset }) => {
+      const sorted = [...users].sort((a, b) => b.score - a.score);
+      return (
+        <div className="flex-1 flex flex-col p-4 md:p-10 max-w-6xl mx-auto w-full">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-500 mt-1">Überwachung der Google Pixel 10a Live Session</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {gameState.status !== 'running' ? (
+                <button onClick={onStart} className="px-8 py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-100 hover:bg-green-600 active:scale-95 transition-all">
+                  <Play size={20}/> Session starten
+                </button>
+              ) : (
+                <button onClick={onStop} className="px-8 py-4 bg-red-500 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-red-100 hover:bg-red-600 active:scale-95 transition-all">
+                  <Square size={20}/> Session stoppen
+                </button>
+              )}
+              <button onClick={onReset} className="p-4 bg-white border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-100 transition-all" title="Reset">
+                <RefreshCcw size={20}/>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            {[
+              { label: 'Teilnehmer', val: users.length, color: 'text-blue-600' },
+              { label: 'Beendet', val: users.filter(u => u.finished).length, color: 'text-green-600' },
+              { label: 'Status', val: gameState.status?.toUpperCase() || 'IDLE', color: gameState.status === 'running' ? 'text-green-500' : 'text-gray-400' }
+            ].map((stat, i) => (
+              <div key={i} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">{stat.label}</p>
+                <p className={`text-3xl font-bold ${stat.color}`}>{stat.val}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="px-8 py-5">Rang</th>
+                    <th className="px-8 py-5">Teilnehmer</th>
+                    <th className="px-8 py-5">Score</th>
+                    <th className="px-8 py-5">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-base">
+                  {sorted.map((u, i) => (
+                    <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-8 py-5 font-bold text-gray-400">#{i+1}</td>
+                      <td className="px-8 py-5 font-bold text-gray-900">{u.name}</td>
+                      <td className="px-8 py-5 font-bold text-blue-600">{u.score}</td>
+                      <td className="px-8 py-5">
+                        {u.finished ? (
+                          <span className="bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-xs font-bold">Fertig</span>
+                        ) : (
+                          <span className="bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold">In Arbeit</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {sorted.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="px-8 py-12 text-center text-gray-400">Keine Teilnehmer bisher angemeldet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [user, setUser] = useState(null);
+      const [userId, setUserId] = useState(null);
+      const [gameState, setGameState] = useState({ status: 'loading' });
+      const [allUsers, setAllUsers] = useState([]);
+      const [currentQIndex, setCurrentQIndex] = useState(0);
+      const [score, setScore] = useState(0);
+      const [timeLeft, setTimeLeft] = useState(0);
+      const [step, setStep] = useState('login'); // login, quiz, feedback, podium
+
+      useEffect(() => {
+        const initAuth = async () => {
+          await signInAnonymously(auth);
+          onAuthStateChanged(auth, u => { if(u) setUserId(u.uid); });
+        };
+        initAuth();
+      }, []);
+
+      useEffect(() => {
+        if (!userId) return;
+        const gameRef = doc(db, 'artifacts', appId, 'public', 'gameState');
+        return onSnapshot(gameRef, snap => {
+          if (snap.exists()) {
+            const data = snap.data();
+            setGameState(data);
+            if (data.status === 'running' && data.endTime) {
+              const timer = setInterval(() => {
+                const diff = Math.max(0, Math.ceil((data.endTime.toMillis() - Date.now()) / 1000));
+                setTimeLeft(diff);
+                if(diff === 0 && step === 'quiz') setStep('podium');
+              }, 1000);
+              return () => clearInterval(timer);
+            }
+          }
+        });
+      }, [userId, step]);
+
+      useEffect(() => {
+        if (user?.isAdmin) {
+          const q = query(collection(db, 'artifacts', appId, 'users'));
+          return onSnapshot(q, snap => {
+            const list = [];
+            snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+            setAllUsers(list);
+          });
+        }
+      }, [user?.isAdmin]);
+
+      const handleJoin = async (name) => {
+        const isAdmin = name.toLowerCase() === 'admin';
+        const uData = { name, isAdmin, score: 0, finished: false };
+        setUser(uData);
+        if (!isAdmin) {
+          await setDoc(doc(db, 'artifacts', appId, 'users', userId), uData);
+          setStep('quiz');
+        }
+      };
+
+      const handleAnswer = async (idx) => {
+        const isCorrect = QUESTIONS[currentQIndex].correct === idx;
+        const newScore = score + (isCorrect ? 10 : 0);
+        setScore(newScore);
+        
+        await updateDoc(doc(db, 'artifacts', appId, 'users', userId), { score: newScore });
+
+        if (currentQIndex < QUESTIONS.length - 1) {
+          setCurrentQIndex(currentQIndex + 1);
+        } else {
+          setStep('feedback');
+        }
+      };
+
+      const handleFinish = async (f1, f2) => {
+        await updateDoc(doc(db, 'artifacts', appId, 'users', userId), { 
+          finished: true, 
+          feedback: { rating: f1, recommendation: f2 } 
+        });
+        setStep('podium');
+        
+        const q = query(collection(db, 'artifacts', appId, 'users'));
+        onSnapshot(q, snap => {
+            const list = [];
+            snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+            setAllUsers(list);
+        });
+      };
+
+      const startSession = async () => {
+        const endTime = new Date();
+        endTime.setMinutes(endTime.getMinutes() + 15);
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'running', endTime });
+      };
+      const stopSession = async () => await updateDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'stopped' });
+      const resetSession = async () => await updateDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'waiting', endTime: null });
+
+      if (user?.isAdmin) return <AdminDashboard gameState={gameState} users={allUsers} onStart={startSession} onStop={stopSession} onReset={resetSession} />;
+
+      if (step === 'login') return <LoginScreen onJoin={handleJoin} />;
+
+      if (gameState.status === 'stopped' || (timeLeft === 0 && gameState.status === 'running')) {
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in">
+            <div className="glass-panel p-10 max-w-sm w-full shadow-2xl">
+              <Clock size={64} className="text-red-500 mb-6 mx-auto" />
+              <h1 className="text-3xl font-bold mb-4 text-gray-900">Zeit um!</h1>
+              <p className="text-gray-500">Die Session wurde beendet. Wir werten nun gemeinsam die Ergebnisse aus.</p>
+            </div>
+          </div>
+        );
+      }
+
+      if (gameState.status === 'waiting' || gameState.status === 'loading') {
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in">
+             <div className="glass-panel p-12 max-w-sm w-full shadow-2xl">
+              <div className="bg-blue-50 text-blue-600 p-5 rounded-3xl w-24 h-24 flex items-center justify-center mx-auto mb-8 shadow-inner">
+                <User size={48} />
+              </div>
+              <h2 className="text-3xl font-bold mb-3 text-gray-900">Moin {user.name.split(' ')[0]}!</h2>
+              <p className="text-gray-500 leading-relaxed">Bitte hab einen Moment Geduld. Das Training startet gleich durch den Moderator.</p>
+             </div>
+          </div>
+        );
+      }
+
+      if (step === 'quiz') return <QuizScreen question={QUESTIONS[currentQIndex]} index={currentQIndex} total={QUESTIONS.length} onAnswer={handleAnswer} timeLeft={timeLeft} />;
+      if (step === 'feedback') return <FeedbackScreen onFinish={handleFinish} />;
+      if (step === 'podium') return <PodiumScreen leaderboard={allUsers} score={score} name={user.name} />;
+
+      return null;
+    };
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
