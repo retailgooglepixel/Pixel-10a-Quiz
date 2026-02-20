@@ -73,9 +73,9 @@
     import { initializeApp } from 'firebase/app';
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
     import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, serverTimestamp, query, getDocs } from 'firebase/firestore';
-    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users } from 'lucide-react';
+    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer } from 'lucide-react';
 
-    // Sichere Firebase Initialisierung (unterstützt lokale und externe Ausführung)
+    // Sichere Firebase Initialisierung
     let firebaseConfig;
     if (typeof __firebase_config !== 'undefined') {
       firebaseConfig = JSON.parse(__firebase_config);
@@ -95,7 +95,7 @@
     const db = getFirestore(app);
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'pixel-10a-live-training-sync-v1';
 
-    // 15 Fragen aus den neuen Trainingsunterlagen (inkl. Pixel 10a / Stallion)
+    // 15 Fragen aus den Trainingsunterlagen
     const QUESTIONS = [
       { q: "Wie kann das Pixel 10a beim Multitasking unterstützen und schnelle Antworten liefern?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
       { q: "Welche Softwarezusage gibt Google für das Pixel 10a (Langlebigkeit)?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates", "7 Jahre OS- und Sicherheitsupdates", "4 Jahre OS-Support"], correct: 2 },
@@ -116,10 +116,10 @@
 
     const TimerCircle = ({ seconds }) => (
       <div className="flex justify-center mb-6">
-        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white border-4 border-blue-500 flex flex-col items-center justify-center pulse-timer shadow-2xl relative z-10">
-          <Clock size={16} className="text-blue-500 mb-1" />
-          <span className="text-2xl md:text-3xl font-bold text-gray-800">
-            {Math.floor(seconds / 60)}:{(seconds % 60).toString().padStart(2, '0')}
+        <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-white border-4 flex flex-col items-center justify-center shadow-2xl relative z-10 transition-colors ${seconds === 0 ? 'border-red-500 text-red-500' : 'border-blue-500 text-blue-500 pulse-timer'}`}>
+          <Timer size={20} className="mb-1" />
+          <span className={`text-3xl md:text-4xl font-bold ${seconds === 0 ? 'text-red-600' : 'text-gray-800'}`}>
+            {seconds}
           </span>
         </div>
       </div>
@@ -161,7 +161,8 @@
       return (
         <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4 md:p-8 animate-in overflow-y-auto">
           <TimerCircle seconds={timeLeft} />
-          <div className="mb-4 text-center">
+          
+          <div className="mb-4 flex justify-center">
             <span className="bg-blue-50 text-blue-700 px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">
               Frage {index + 1} von 15
             </span>
@@ -217,10 +218,25 @@
               );
             })}
           </div>
+          
+          {/* Wartemeldung BEVOR aufgelöst wird */}
           {userAnswer !== null && !showResults && (
-            <div className="mt-8 p-6 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-4 animate-pulse">
-              <span className="text-blue-600"><Info size={24} /></span>
-              <p className="text-blue-800 font-bold">Antwort eingeloggt. Warte auf die Auflösung durch den Trainer...</p>
+            <div className={`mt-8 p-6 rounded-2xl border flex items-center justify-center gap-4 ${userAnswer === -1 ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200 animate-pulse'}`}>
+              <span className={userAnswer === -1 ? "text-red-500" : "text-blue-500"}><Info size={24} /></span>
+              <p className={userAnswer === -1 ? "text-red-700 font-bold text-center" : "text-blue-800 font-bold text-center"}>
+                {userAnswer === -1 ? "Zeit abgelaufen! Keine Antwort gewertet." : "Antwort eingeloggt. Warte auf die Auflösung durch den Trainer..."}
+              </p>
+            </div>
+          )}
+
+          {/* Punkte-Banner NACHDEM aufgelöst wurde */}
+          {showResults && (
+            <div className={`mt-8 p-6 rounded-2xl border flex items-center justify-center gap-4 animate-in ${userAnswer === question.correct ? 'bg-green-100 border-green-300 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+              <h3 className="font-bold text-xl text-center">
+                {userAnswer === question.correct 
+                  ? (isDoublePoints ? "🎉 Richtig! +20 Punkte!" : "🎉 Richtig! +10 Punkte!") 
+                  : (userAnswer === -1 ? "⏱️ Zeit abgelaufen (0 Punkte)" : "❌ Leider falsch (0 Punkte)")}
+              </h3>
             </div>
           )}
         </div>
@@ -299,7 +315,7 @@
       );
     };
 
-    const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset }) => {
+    const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft }) => {
       const currentQ = QUESTIONS[gameState.currentQuestionIndex || 0];
       const sortedUsers = [...users].sort((a,b) => b.score - a.score);
       const answersCount = users.filter(u => u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null).length;
@@ -334,8 +350,14 @@
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center mb-8">
-                    <span className="bg-blue-100 text-blue-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / 15</span>
+                  <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className="bg-blue-100 text-blue-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / 15</span>
+                      {/* ADMIN TIMER ANZEIGE */}
+                      <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${timeLeft === 0 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-gray-100 text-gray-700'}`}>
+                        <Clock size={14} /> {timeLeft} Sek
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2 text-gray-500 font-bold">
                       <User size={18} /> 
                       <span>{answersCount} von {users.length} Teilnehmern</span>
@@ -372,7 +394,7 @@
                       <Users size={40} />
                    </div>
                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Bereit für den Start?</h2>
-                   <p className="text-gray-500">Sobald alle Teilnehmer beigetreten sind, kannst du das Quiz oben rechts starten.</p>
+                   <p className="text-gray-500">Sobald alle Teilnehmer beigetreten sind, kannst du das Quiz starten.</p>
                 </div>
               )}
             </div>
@@ -435,7 +457,7 @@
         return () => unsubscribe();
       }, []);
 
-      // 2. Echtzeit GameState auslesen (aber den Step nur ändern, wenn ein User eingeloggt ist)
+      // 2. Echtzeit GameState auslesen (Gatekeeper)
       useEffect(() => {
         if (!userId) return;
         const gameRef = doc(db, 'artifacts', appId, 'public', 'gameState');
@@ -445,9 +467,7 @@
             const data = snap.data();
             setGameState(data);
             
-            // GATEKEEPER-LOGIK: Das System ändert den Screen (Step) NUR, wenn ein Nutzer bereits existiert (angemeldet ist)
             if (user) {
-              // NEU: Session-ID Logik. Wenn der Admin resettet, ändert sich die ID und alte Teilnehmer werden zum Login zurückgeschickt.
               if (!user.isAdmin && data.sessionId && user.sessionId && data.sessionId !== user.sessionId) {
                   setUser(null);
                   setStep('login');
@@ -456,13 +476,6 @@
 
               if (data.status === 'running') {
                 setStep('quiz');
-                if (data.endTime) {
-                  const interval = setInterval(() => {
-                    const diff = Math.max(0, Math.ceil((data.endTime.toMillis() - Date.now()) / 1000));
-                    setTimeLeft(diff);
-                  }, 1000);
-                  return () => clearInterval(interval);
-                }
               } else if (data.status === 'waiting') {
                 setStep(user.isAdmin ? 'admin' : 'waiting');
               } else if (data.status === 'feedback') {
@@ -475,14 +488,40 @@
         }, (error) => console.error("Snapshot error", error));
         
         return () => unsub();
-      }, [userId, user]); // Die Abhängigkeit "user" stellt sicher, dass dies nach dem Login triggert
+      }, [userId, user]);
 
       // 3. Wenn die Frage wechselt, die lokale Auswahl zurücksetzen
       useEffect(() => {
         setUserAnswer(null);
       }, [gameState.currentQuestionIndex]);
 
-      // 4. Echtzeit User-Liste auslesen
+      // 4. Timer Logik - 15 Sekunden Countdown
+      useEffect(() => {
+        if (step !== 'quiz' || !gameState.questionEndTime) return;
+        
+        // Firestore Timestamp oder normales Date verarbeiten
+        const endMillis = gameState.questionEndTime?.toMillis 
+          ? gameState.questionEndTime.toMillis() 
+          : new Date(gameState.questionEndTime).getTime();
+        
+        const updateTimer = () => {
+          const diff = Math.max(0, Math.ceil((endMillis - Date.now()) / 1000));
+          setTimeLeft(diff);
+        };
+        
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+      }, [step, gameState.questionEndTime]);
+
+      // 5. Automatischer Timeout-Submit für Teilnehmer (Timeout = -1)
+      useEffect(() => {
+        if (step === 'quiz' && timeLeft === 0 && userAnswer === null && !gameState.showResults && user && !user.isAdmin) {
+          handleAnswer(-1);
+        }
+      }, [timeLeft, userAnswer, step, gameState.showResults, user]);
+
+      // 6. Echtzeit User-Liste auslesen
       useEffect(() => {
         if (!userId) return;
         if (user?.isAdmin || step === 'podium' || step === 'admin') {
@@ -492,7 +531,6 @@
             const currentSessionId = gameState.sessionId || 'default';
             snap.forEach(d => {
               const data = d.data();
-              // NUR Teilnehmer der aktuellen Session im Dashboard anzeigen (alte bleiben aber in der Datenbank)!
               if (data.sessionId === currentSessionId) {
                 list.push({ id: d.id, ...data });
               }
@@ -511,13 +549,10 @@
         const currentSessionId = gameState.sessionId || 'default';
         const uData = { name, isAdmin, score: 0, finished: false, sessionId: currentSessionId };
         
-        // Zuerst den lokalen Status aktualisieren (damit der Gatekeeper öffnet)
         setUser(uData);
         
         if (!isAdmin) {
           await setDoc(doc(db, 'artifacts', appId, 'users', userId), uData);
-          
-          // Nach dem Klick prüfen, ob die Session zufällig schon läuft
           if (gameState.status === 'running') setStep('quiz');
           else if (gameState.status === 'feedback') setStep('feedback');
           else if (gameState.status === 'podium') setStep('podium');
@@ -529,9 +564,10 @@
 
       const handleAnswer = async (idx) => {
         if (userAnswer !== null || !userId) return;
-        setUserAnswer(idx);
+        setUserAnswer(idx); // -1 wird als "Timeout" gespeichert
         
-        const isCorrect = QUESTIONS[gameState.currentQuestionIndex].correct === idx;
+        // Bewertung und Punktelogik
+        const isCorrect = idx >= 0 && QUESTIONS[gameState.currentQuestionIndex].correct === idx;
         const isDouble = gameState.doublePoints?.[gameState.currentQuestionIndex];
         const pointsToAward = isCorrect ? (isDouble ? 20 : 10) : 0;
         
@@ -555,10 +591,10 @@
       // --- ADMIN FUNKTIONEN ---
 
       const adminStart = async () => {
-        const endTime = new Date();
-        endTime.setMinutes(endTime.getMinutes() + 20); // 20 Minuten Gesamt-Timer
+        // 15 Sekunden Timer-Endzeit generieren
+        const qEndTime = new Date();
+        qEndTime.setSeconds(qEndTime.getSeconds() + 15);
         
-        // Zufällige Verteilung der "Double Points" Runden (ca. 30% Chance pro Frage)
         const randomDoublePoints = Array.from({length: QUESTIONS.length}, () => Math.random() < 0.3);
 
         await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { 
@@ -566,7 +602,7 @@
           currentQuestionIndex: 0, 
           showResults: false,
           doublePoints: randomDoublePoints,
-          endTime 
+          questionEndTime: qEndTime 
         }, { merge: true });
       };
 
@@ -577,11 +613,18 @@
       const adminNext = async () => {
         const nextIndex = (gameState.currentQuestionIndex || 0) + 1;
         if (nextIndex < 15) {
-          // Nur die aktiven Teilnehmer der aktuellen Session zurücksetzen (Datenbank-Schonend)
           const updatePromises = allUsers.map(u => updateDoc(doc(db, 'artifacts', appId, 'users', u.id), { lastAnswerIndex: null }));
           await Promise.all(updatePromises);
           
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { currentQuestionIndex: nextIndex, showResults: false }, { merge: true });
+          // 15 Sekunden Timer für die neue Frage starten
+          const qEndTime = new Date();
+          qEndTime.setSeconds(qEndTime.getSeconds() + 15);
+
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { 
+            currentQuestionIndex: nextIndex, 
+            showResults: false,
+            questionEndTime: qEndTime 
+          }, { merge: true });
         } else {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'feedback' }, { merge: true });
         }
@@ -589,8 +632,6 @@
 
       const adminReset = async () => {
         const newSessionId = Date.now().toString();
-        // Kein 'merge: true' hier, um alte Timer und DoublePoints restlos zu löschen.
-        // Die Datenbank-Dokumente der User bleiben erhalten, werden aber durch die neue Session-ID ausgeblendet!
         await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { 
           status: 'waiting', 
           currentQuestionIndex: 0,
@@ -599,22 +640,20 @@
       };
 
       const adminToPodium = async () => {
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'podium' });
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'podium' }, { merge: true });
       };
 
       // --- RENDERING GATEKEEPER ---
       
       let content = null;
 
-      // Regel 1: Ohne "user"-Objekt kommst du an dieser Maske niemals vorbei.
       if (!user) {
         content = <LoginScreen onJoin={handleJoin} />;
       }
-      // Regel 2: Wenn du der Admin bist, erhältst du das Dashboard.
       else if (user.isAdmin) {
         content = (
           <div className="flex-1 flex flex-col relative">
-            <AdminDashboard gameState={gameState} users={allUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} />
+            <AdminDashboard gameState={gameState} users={allUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} timeLeft={timeLeft} />
             {gameState.status === 'feedback' && (
                <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
                   <button onClick={adminToPodium} className="px-12 py-5 bg-yellow-500 text-white rounded-2xl font-bold shadow-2xl hover:bg-yellow-600 active:scale-95 transition-all text-xl">Podium anzeigen</button>
@@ -623,7 +662,6 @@
           </div>
         );
       }
-      // Regel 3: Für normale Teilnehmer werden die Status-Masken gerendert.
       else if (step === 'waiting') {
         content = (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in">
@@ -651,19 +689,15 @@
       } else if (step === 'podium') {
         content = <PodiumScreen leaderboard={allUsers} score={allUsers.find(u => u.id === userId)?.score || 0} name={user.name} />;
       } else {
-        // Fallback Ladebildschirm
         content = <div className="flex-1 flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
       }
 
       return (
         <div className="flex-1 flex flex-col w-full h-full relative">
-          {/* GLOBALE HEADER LOGOS */}
           <div className="w-full flex justify-between items-center px-6 md:px-10 pt-6 shrink-0 z-50">
             <img src="https://i.postimg.cc/gJVH7YL6/image_(23).png" alt="Logo Links" className="h-8 md:h-12 lg:h-14 object-contain" />
             <img src="https://i.postimg.cc/3RYySfcs/google-icon-logo-new-old.png" alt="Google Logo" className="h-8 md:h-12 lg:h-14 object-contain" />
           </div>
-          
-          {/* SEITENINHALT */}
           {content}
         </div>
       );
