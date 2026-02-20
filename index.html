@@ -95,22 +95,22 @@
     const db = getFirestore(app);
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'pixel-10a-live-training-sync-v1';
 
-    // 15 Fragen aus den Trainingsunterlagen
+    // GEPRÜFTE 15 FRAGEN AUS DEN NEUEN TRAININGSUNTERLAGEN
     const QUESTIONS = [
-      { q: "Wie kann das Pixel 10a beim Multitasking unterstützen und schnelle Antworten liefern?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
-      { q: "Welche Softwarezusage gibt Google für das Pixel 10a (Langlebigkeit)?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates", "7 Jahre OS- und Sicherheitsupdates", "4 Jahre OS-Support"], correct: 2 },
-      { q: "Ein Kunde möchte mit 'Nano Banana' ein Bild erstellen. Was ist der erste Schritt?", options: ["'Bilder erstellen' auswählen", "Bild beschreiben", "Gemini öffnen", "Auf das Werkzeugsymbol tippen"], correct: 2 },
-      { q: "Wie funktioniert die Gruppenaufnahme beim Pixel 10a?", options: ["Kamera erkennt Gruppe automatisch", "Man muss 5 Fotos manuell zusammenfügen", "Nur im Porträtmodus verfügbar", "Erfordert ein externes Stativ"], correct: 0 },
-      { q: "Welche Funktion hilft Hobby-Fotografen, bessere Fotos zu machen?", options: ["Kamera-Coach", "Veo3", "Magisches Auge", "Pixel-Trainer"], correct: 0 },
-      { q: "Wie hoch ist die Leistungssteigerung der TPU des neuen Google Tensor G5?", options: ["25%", "60%", "50%", "15%"], correct: 1 },
-      { q: "Wie heißt die neue, auf Qi2 basierende Magnettechnologie für kabelloses Laden?", options: ["PixelDock", "MagCharge", "Pixelsnap", "TensorCharge"], correct: 1 },
-      { q: "Worüber kannst du mit Gemini Live auf dem Pixel 10a sprechen?", options: ["Was du auf dem Bildschirm siehst", "Was mit deiner Kamera geteilt wird", "Beides", "Gar nichts von beidem"], correct: 2 },
-      { q: "Was können KI-generierte Videos dank Gemini und Veo3 bieten?", options: ["Sound", "Sprache", "Menschen", "Alles davon"], correct: 3 },
-      { q: "Welche Kamera-Ausstattung bietet das Pixel 10 Pro (XL)?", options: ["Nur Weitwinkel", "Dual-Kamera", "Dreifachkamerasystem (50/48/48 MP)", "Dual-Kamera mit 100 MP"], correct: 2 },
-      { q: "Wie viel RAM bietet das Pixel 10 Pro (XL) und das Pixel 10 Pro Fold?", options: ["8GB", "12GB", "16GB", "14GB"], correct: 2 },
+      { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
+      { q: "Welche Softwarezusage gibt Google für das Pixel 10a (Langlebigkeit)?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates sowie Pixel Drops", "4 Jahre Support durch Titan M2"], correct: 2 },
+      { q: "Ein Kunde möchte mit 'Nano Banana' ein Bild erstellen. Was ist die richtige Reihenfolge der Schritte?", options: ["Gemini öffnen > Werkzeugsymbol > Bilder erstellen > Bild beschreiben", "Bilder erstellen > Gemini öffnen > Bild beschreiben > Werkzeugsymbol", "Werkzeugsymbol > Gemini öffnen > Bild beschreiben > Bilder erstellen", "Bild beschreiben > Gemini öffnen > Werkzeugsymbol > Bilder erstellen"], correct: 0 },
+      { q: "Wie funktioniert die Gruppenaufnahme beim Pixel 10a?", options: ["Kamera auf die Gruppe ausrichten, die KI erkennt sie automatisch.", "Man muss 5 Fotos manuell zusammenfügen.", "Sie ist nur im Porträtmodus verfügbar.", "Sie erfordert zwingend ein externes Stativ."], correct: 0 },
+      { q: "Welche wesentliche Neuerung im Kamerasystem des Standardmodells Pixel 10 wird hervorgehoben, die bisher den Pro-Modellen vorbehalten war?", options: ["Ein Dreifach-Rückkamerasystem mit 5-fach-Teleobjektiv", "Der Pro-Resolution-Zoom mit bis zu 100-facher Vergrößerung", "Die Funktion „Nachtsichtvideo“", "Profi-Bedienelemente zur manuellen Einstellung"], correct: 0 },
+      { q: "Wie hoch ist laut den Trainingsunterlagen die Leistungssteigerung der TPU im neuen Google Tensor G5 Prozessor?", options: ["25 % leistungsstärkere TPU", "60 % leistungsstärkere TPU", "50 % leistungsstärkere TPU", "40 % leistungsstärkere TPU"], correct: 1 },
+      { q: "Wie hoch ist die Leistungssteigerung der CPU im neuen Google Tensor G5 Prozessor?", options: ["15 %", "25 %", "50 %", "60 %"], correct: 1 },
+      { q: "Welches Angebot erhalten Käufer eines Pixel 10 Pro oder Pixel 10 Pro XL für ein Jahr kostenlos?", options: ["Eine YouTube Premium-Mitgliedschaft", "Eine Fitbit Premium-Mitgliedschaft", "Ein Google One-Abo mit 2 TB Speicher (Google One AI Premium)", "Einen Google Play Pass"], correct: 2 },
+      { q: "Worüber kannst du mit Gemini Live auf dem Pixel sprechen?", options: ["Nur über das, was du auf dem Bildschirm siehst", "Nur über das, was mit deiner Kamera geteilt wird", "Über beides (Bildschirminhalte und Kamerabild)", "Gar nichts von beidem"], correct: 2 },
+      { q: "Was können KI-generierte Videos dank Gemini und Veo3 auf dem Pixel bieten?", options: ["Nur Sound", "Nur Sprache", "Nur Menschen", "Alles davon (Sound, Sprache, Menschen)"], correct: 3 },
+      { q: "Unter welchem Namen wird die neue, auf dem Qi2-Standard basierende Magnettechnologie für kabelloses Laden eingeführt?", options: ["PixelDock", "MagCharge", "Pixelsnap", "TensorCharge"], correct: 1 },
       { q: "Welcher Sicherheitschip ist in der Pixel 10 Serie enthalten?", options: ["Titan M", "Nox Secure", "Titan M2", "Google Shield Protect"], correct: 2 },
-      { q: "Wie lang können mit Veo3 erzeugte Videos maximal werden?", options: ["3 Sekunden", "5 Sekunden", "8 Sekunden", "10 Sekunden"], correct: 3 },
-      { q: "Was macht das Aluminium in Raumfahrtqualität der Pixel-Geräte nachhaltig?", options: ["Es ist zu 100 % recycelt.", "Es wird aus Raumschiffen gewonnen.", "Es wird aus Dosen hergestellt.", "Es ist biologisch abbaubar."], correct: 0 },
+      { q: "Was macht das Aluminium in Raumfahrtqualität des Pixel 10 Pro zu einer nachhaltigen Wahl?", options: ["Es ist zu 100 % recycelt.", "Es wird aus alten Raumschiffen hergestellt.", "Es wird aus Aluminiumdosen hergestellt.", "Es besteht vollständig aus reinem Aluminium."], correct: 0 },
+      { q: "Welche Funktion würde einem Hobby-Fotografen helfen, um auf dem Pixel 10a bessere Fotos zu machen?", options: ["Kamera-Coach", "Veo3", "Magisches Auge", "Pixel-Trainer"], correct: 0 },
       { q: "Wie ruft man Gemini auf dem Pixel standardmäßig auf?", options: ["Power-Taste lang drücken", "Lauter-Taste", "Display antippen", "Schütteln"], correct: 0 }
     ];
 
@@ -435,7 +435,7 @@
       const [timeLeft, setTimeLeft] = useState(0);
       const [step, setStep] = useState('login'); 
 
-      // WICHTIG: Refs um "stale closures" (veraltete Zustände in Timeouts) zu verhindern
+      // Refs um "stale closures" (veraltete Zustände in Timeouts) zu verhindern
       const userRef = useRef(null);
       const userAnswerRef = useRef(null);
 
@@ -493,26 +493,21 @@
         return () => unsub();
       }, [userId, user]);
 
-      // Setzt die Antwort auf der UI zurück, wenn der Index sich ändert
       useEffect(() => {
         setUserAnswer(null);
       }, [gameState.currentQuestionIndex]);
 
-      // Robuste Timer- & Timeout-Logik
+      // Robuste Timer- & Timeout-Logik (15 Sekunden)
       useEffect(() => {
-        // Startet nur, wenn Quiz aktiv ist und noch nicht aufgelöst wurde
         if (gameState.status === 'running' && !gameState.showResults) {
           setTimeLeft(15);
           
-          // Timeout für Automatische Abgabe (-1) nach exakt 15 Sekunden
           const timeoutId = setTimeout(() => {
-             // Wenn die Zeit um ist und der Teilnehmer wirklich noch nichts geklickt hat
              if (userRef.current && !userRef.current.isAdmin && userAnswerRef.current === null) {
                 handleAnswer(-1); // -1 = Timeout (Falsch)
              }
           }, 15000);
 
-          // Visueller Timer-Countdown
           const intervalId = setInterval(() => {
             setTimeLeft(prev => Math.max(0, prev - 1));
           }, 1000);
@@ -563,17 +558,14 @@
       };
 
       const handleAnswer = async (idx) => {
-        // Prüfen, ob bereits beantwortet wurde (mit aktuellem Zustand aus dem Ref)
         if (userAnswerRef.current !== null || !userId) return;
         
         setUserAnswer(idx); 
         
-        // Punkte berechnen
         const isCorrect = idx >= 0 && QUESTIONS[gameState.currentQuestionIndex].correct === idx;
         const isDouble = gameState.doublePoints?.[gameState.currentQuestionIndex];
         const pointsToAward = isCorrect ? (isDouble ? 20 : 10) : 0;
         
-        // DIREKTES Addieren via Firebase "increment" für 100% Zuverlässigkeit
         await updateDoc(doc(db, 'artifacts', appId, 'users', userId), { 
           lastAnswerIndex: idx,
           score: increment(pointsToAward) 
@@ -607,7 +599,6 @@
       const adminNext = async () => {
         const nextIndex = (gameState.currentQuestionIndex || 0) + 1;
         if (nextIndex < 15) {
-          // Antworten zurücksetzen
           const updatePromises = allUsers.map(u => updateDoc(doc(db, 'artifacts', appId, 'users', u.id), { lastAnswerIndex: null }));
           await Promise.all(updatePromises);
           
