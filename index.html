@@ -73,7 +73,7 @@
     import { initializeApp } from 'firebase/app';
     import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
     import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, serverTimestamp, query, getDocs } from 'firebase/firestore';
-    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info } from 'lucide-react';
+    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users } from 'lucide-react';
 
     const firebaseConfig = JSON.parse('{"apiKey": "AIzaSyCNw2VGI326G6npQLr5inYwb9ZDVMgy6JA", "authDomain": "bootcamp-4b851.firebaseapp.com", "projectId": "bootcamp-4b851", "storageBucket": "bootcamp-4b851.firebasestorage.app", "messagingSenderId": "579476922275", "appId": "1:579476922275:web:5476fad85409cc444a0416"}');
     const app = initializeApp(firebaseConfig);
@@ -195,7 +195,7 @@
           </div>
           {userAnswer !== null && !showResults && (
             <div className="mt-8 p-6 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-4 animate-pulse">
-              <Info className="text-blue-600" />
+              <span className="text-blue-600"><Info size={24} /></span>
               <p className="text-blue-800 font-bold">Antwort eingeloggt. Warte auf die Auflösung durch den Trainer...</p>
             </div>
           )}
@@ -252,18 +252,15 @@
         <div className="flex-1 flex flex-col items-center justify-center p-4 animate-in w-full max-w-xl mx-auto">
           <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-12 text-center">Top Ergebnisse</h1>
           <div className="flex items-end justify-center gap-2 md:gap-4 mb-12 w-full px-4 h-64">
-            {/* Platz 2 */}
             <div className="flex flex-col items-center flex-1">
               <p className="text-[10px] font-bold text-gray-400 truncate w-full text-center mb-1">{top3[1]?.name || '-'}</p>
               <div className="podium-2 w-full flex items-center justify-center shadow-lg"><span className="text-3xl font-bold text-white">2</span></div>
             </div>
-            {/* Platz 1 */}
             <div className="flex flex-col items-center flex-1">
-              <Trophy size={48} className="text-yellow-500 mb-3 animate-bounce" />
+              <span className="text-yellow-500 mb-3 animate-bounce"><Trophy size={48} /></span>
               <p className="text-xs font-bold text-gray-800 truncate w-full text-center mb-1">{top3[0]?.name || '-'}</p>
               <div className="podium-1 w-full flex items-center justify-center shadow-2xl"><span className="text-5xl font-bold text-white">1</span></div>
             </div>
-            {/* Platz 3 */}
             <div className="flex flex-col items-center flex-1">
               <p className="text-[10px] font-bold text-gray-400 truncate w-full text-center mb-1">{top3[2]?.name || '-'}</p>
               <div className="podium-3 w-full flex items-center justify-center shadow-lg"><span className="text-2xl font-bold text-white">3</span></div>
@@ -299,58 +296,76 @@
             </div>
           </div>
 
-          {gameState.status === 'running' && (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-10">
-              <div className="xl:col-span-2 glass-panel p-8 md:p-12 border-l-[12px] border-l-blue-500">
-                <div className="flex justify-between items-center mb-8">
-                  <span className="bg-blue-100 text-blue-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / 15</span>
-                  <div className="flex items-center gap-2 text-gray-500 font-bold">
-                    <User size={18} /> 
-                    <span>{answersCount} von {users.length} Teilnehmern haben geantwortet</span>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-10">
+            {/* Linke Spalte: Aktuelle Frage (nur im Status 'running') */}
+            <div className="xl:col-span-2">
+              {gameState.status === 'running' ? (
+                <div className="glass-panel p-8 md:p-12 border-l-[12px] border-l-blue-500 animate-in">
+                  <div className="flex justify-between items-center mb-8">
+                    <span className="bg-blue-100 text-blue-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / 15</span>
+                    <div className="flex items-center gap-2 text-gray-500 font-bold">
+                      <User size={18} /> 
+                      <span>{answersCount} von {users.length} Teilnehmern</span>
+                    </div>
+                  </div>
+                  
+                  <h2 className="text-2xl md:text-4xl font-bold mb-10 text-gray-900 leading-tight">{currentQ.q}</h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                    {currentQ.options.map((opt, i) => (
+                      <div key={i} className={`p-6 rounded-2xl border-2 flex justify-between items-center text-lg ${i === currentQ.correct ? 'bg-green-50 border-green-500 text-green-700 font-bold' : 'bg-white border-gray-100 text-gray-600'}`}>
+                        <span>{opt}</span>
+                        {i === currentQ.correct && <CheckCircle2 size={24} />}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    {!gameState.showResults ? (
+                      <button onClick={onReveal} className="flex-1 py-5 bg-blue-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"><Eye size={24}/> Antwort auflösen</button>
+                    ) : (
+                      <button onClick={onNextQuestion} className="flex-1 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
+                        {gameState.currentQuestionIndex < 14 ? 'Nächste Frage' : 'Feedback einholen'} <ChevronRight size={24}/>
+                      </button>
+                    )}
                   </div>
                 </div>
-                
-                <h2 className="text-2xl md:text-4xl font-bold mb-10 text-gray-900 leading-tight">{currentQ.q}</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-                  {currentQ.options.map((opt, i) => (
-                    <div key={i} className={`p-6 rounded-2xl border-2 flex justify-between items-center text-lg ${i === currentQ.correct ? 'bg-green-50 border-green-500 text-green-700 font-bold' : 'bg-white border-gray-100 text-gray-600'}`}>
-                      <span>{opt}</span>
-                      {i === currentQ.correct && <CheckCircle2 size={24} />}
-                    </div>
-                  ))}
+              ) : (
+                <div className="glass-panel p-12 text-center animate-in">
+                   <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Users size={40} />
+                   </div>
+                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Bereit für den Start?</h2>
+                   <p className="text-gray-500">Sobald alle Teilnehmer beigetreten sind, kannst du das Quiz oben rechts starten.</p>
                 </div>
+              )}
+            </div>
 
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {!gameState.showResults ? (
-                    <button onClick={onReveal} className="flex-1 py-5 bg-blue-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"><Eye size={24}/> Antwort auflösen</button>
-                  ) : (
-                    <button onClick={onNextQuestion} className="flex-1 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
-                      {gameState.currentQuestionIndex < 14 ? 'Nächste Frage' : 'Feedback einholen'} <ChevronRight size={24}/>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-gray-100 h-fit">
-                <h3 className="font-bold text-gray-400 uppercase text-xs mb-6 tracking-widest border-b pb-4">Echtzeit Rangliste</h3>
-                <div className="space-y-4">
-                  {sortedUsers.map((u, i) => (
-                    <div key={u.id} className="flex justify-between items-center p-4 hover:bg-gray-50 rounded-2xl transition-all border border-transparent hover:border-gray-100">
-                      <div className="flex items-center gap-4">
-                        <span className={`font-bold w-6 h-6 flex items-center justify-center rounded-full text-xs ${i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-400'}`}>
-                          {i+1}
-                        </span>
-                        <span className="font-bold text-gray-800">{u.name}</span>
-                      </div>
-                      <span className="font-bold text-blue-600">{u.score} <span className="text-[10px] text-gray-300">Pkt</span></span>
+            {/* Rechte Spalte: Teilnehmerliste (immer sichtbar) */}
+            <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-gray-100 h-fit">
+              <h3 className="font-bold text-gray-400 uppercase text-xs mb-6 tracking-widest border-b pb-4">
+                {gameState.status === 'running' ? 'Live Rangliste' : 'Lobby - Teilnehmer'}
+              </h3>
+              <div className="space-y-4">
+                {sortedUsers.map((u, i) => (
+                  <div key={u.id} className="flex justify-between items-center p-4 hover:bg-gray-50 rounded-2xl transition-all border border-transparent hover:border-gray-100">
+                    <div className="flex items-center gap-4">
+                      <span className={`font-bold w-6 h-6 flex items-center justify-center rounded-full text-xs ${i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-400'}`}>
+                        {i+1}
+                      </span>
+                      <span className="font-bold text-gray-800">{u.name}</span>
                     </div>
-                  ))}
-                  {sortedUsers.length === 0 && <p className="text-gray-400 text-center py-8">Warte auf Teilnehmer...</p>}
-                </div>
+                    <span className="font-bold text-blue-600">{u.score} <span className="text-[10px] text-gray-300">Pkt</span></span>
+                  </div>
+                ))}
+                {sortedUsers.length === 0 && (
+                  <div className="text-center py-8">
+                     <p className="text-gray-400 text-sm">Warte auf Teilnehmer...</p>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       );
     };
@@ -443,7 +458,6 @@
         setStep('waiting'); 
       };
 
-      // Admin Actions
       const adminStart = async () => {
         const endTime = new Date();
         endTime.setMinutes(endTime.getMinutes() + 20);
