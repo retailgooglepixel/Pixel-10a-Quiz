@@ -395,25 +395,29 @@
             const data = snap.data();
             setGameState(data);
             
-            if (data.status === 'running') {
-              setStep('quiz');
-              if (data.endTime) {
-                const interval = setInterval(() => {
-                  const diff = Math.max(0, Math.ceil((data.endTime.toMillis() - Date.now()) / 1000));
-                  setTimeLeft(diff);
-                }, 1000);
-                return () => clearInterval(interval);
+            // WICHTIG: Nur wenn der User bereits eingeloggt ist (Name eingegeben),
+            // darf die App den View/Step automatisch ändern.
+            if (user) {
+              if (data.status === 'running') {
+                setStep('quiz');
+                if (data.endTime) {
+                  const interval = setInterval(() => {
+                    const diff = Math.max(0, Math.ceil((data.endTime.toMillis() - Date.now()) / 1000));
+                    setTimeLeft(diff);
+                  }, 1000);
+                  return () => clearInterval(interval);
+                }
+              } else if (data.status === 'waiting') {
+                setStep(user.isAdmin ? 'admin' : 'waiting');
+              } else if (data.status === 'feedback') {
+                setStep('feedback');
+              } else if (data.status === 'podium') {
+                setStep('podium');
               }
-            } else if (data.status === 'waiting') {
-              setStep(user?.isAdmin ? 'admin' : 'waiting');
-            } else if (data.status === 'feedback') {
-              setStep('feedback');
-            } else if (data.status === 'podium') {
-              setStep('podium');
             }
           }
         });
-      }, [userId, user?.isAdmin]);
+      }, [userId, user]); // User als Dependency hinzugefügt
 
       useEffect(() => {
         setUserAnswer(null);
@@ -436,6 +440,11 @@
         setUser(uData);
         if (!isAdmin) {
           await setDoc(doc(db, 'artifacts', appId, 'users', userId), uData);
+          // Nach dem Login direkt in den richtigen Status springen
+          if (gameState.status === 'running') setStep('quiz');
+          else if (gameState.status === 'feedback') setStep('feedback');
+          else if (gameState.status === 'podium') setStep('podium');
+          else setStep('waiting');
         } else {
           setStep('admin');
         }
