@@ -95,22 +95,22 @@
     const db = getFirestore(app);
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'pixel-10a-live-training-sync-v1';
 
-    // 15 Fragen aus den Trainingsunterlagen
+    // 15 Fragen aus den neuen Trainingsunterlagen (inkl. Pixel 10a / Stallion)
     const QUESTIONS = [
-      { q: "Welche Funktion würde einem Hobby-Fotografen helfen, um bessere Fotos zu machen?", options: ["Kamera-Coach", "Veo3", "Magisches Auge", "Pixel-Trainer"], correct: 0 },
-      { q: "Wie hoch ist die CPU-Leistungssteigerung des neuen Google Tensor G5 Prozessors?", options: ["25%", "60%", "50%", "15%"], correct: 0 },
-      { q: "Wie viel leistungsstärker ist die TPU des Tensor G5?", options: ["60%", "25%", "50%", "40%"], correct: 0 },
+      { q: "Wie kann das Pixel 10a beim Multitasking unterstützen und schnelle Antworten liefern?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
+      { q: "Welche Softwarezusage gibt Google für das Pixel 10a (Langlebigkeit)?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates", "7 Jahre OS- und Sicherheitsupdates", "4 Jahre OS-Support"], correct: 2 },
+      { q: "Ein Kunde möchte mit 'Nano Banana' ein Bild erstellen. Was ist der erste Schritt?", options: ["'Bilder erstellen' auswählen", "Bild beschreiben", "Gemini öffnen", "Auf das Werkzeugsymbol tippen"], correct: 2 },
+      { q: "Wie funktioniert die Gruppenaufnahme beim Pixel 10a?", options: ["Kamera erkennt Gruppe automatisch", "Man muss 5 Fotos manuell zusammenfügen", "Nur im Porträtmodus verfügbar", "Erfordert ein externes Stativ"], correct: 0 },
+      { q: "Welche Funktion hilft Hobby-Fotografen, bessere Fotos zu machen?", options: ["Kamera-Coach", "Veo3", "Magisches Auge", "Pixel-Trainer"], correct: 0 },
+      { q: "Wie hoch ist die Leistungssteigerung der TPU des neuen Google Tensor G5?", options: ["25%", "60%", "50%", "15%"], correct: 1 },
       { q: "Wie heißt die neue, auf Qi2 basierende Magnettechnologie für kabelloses Laden?", options: ["PixelDock", "MagCharge", "Pixelsnap", "TensorCharge"], correct: 1 },
-      { q: "Wie lange wird das Pixel laut Google mit der Zeit immer besser (Updates)?", options: ["7 Jahre", "5 Jahre", "3 Jahre", "2 Jahre"], correct: 0 },
-      { q: "Worüber kannst du mit Gemini Live auf Pixel sprechen?", options: ["Was du auf dem Bildschirm siehst", "Was mit deiner Kamera geteilt wird", "Beides", "Gar nichts von beidem"], correct: 2 },
-      { q: "Was können deine KI-generierten Videos dank Gemini und Veo3 bieten?", options: ["Sound", "Sprache", "Menschen", "Alles davon"], correct: 3 },
-      { q: "Welche Kamera-Ausstattung bietet das Pixel 10 Pro (XL)?", options: ["Nur Weitwinkel", "Dual-Kamera", "Profi-Dreifachkamerasystem mit 50/48/48 MP", "Dual-Kamera mit 100 MP"], correct: 2 },
+      { q: "Worüber kannst du mit Gemini Live auf dem Pixel 10a sprechen?", options: ["Was du auf dem Bildschirm siehst", "Was mit deiner Kamera geteilt wird", "Beides", "Gar nichts von beidem"], correct: 2 },
+      { q: "Was können KI-generierte Videos dank Gemini und Veo3 bieten?", options: ["Sound", "Sprache", "Menschen", "Alles davon"], correct: 3 },
+      { q: "Welche Kamera-Ausstattung bietet das Pixel 10 Pro (XL)?", options: ["Nur Weitwinkel", "Dual-Kamera", "Dreifachkamerasystem (50/48/48 MP)", "Dual-Kamera mit 100 MP"], correct: 2 },
       { q: "Wie viel RAM bietet das Pixel 10 Pro (XL) und das Pixel 10 Pro Fold?", options: ["8GB", "12GB", "16GB", "14GB"], correct: 2 },
       { q: "Welcher Sicherheitschip ist in der Pixel 10 Serie enthalten?", options: ["Titan M", "Nox Secure", "Titan M2", "Google Shield Protect"], correct: 2 },
-      { q: "Wie lang können mit Veo3 erzeugte Videos maximal werden?", options: ["3 Sekunden", "5 Sekunden", "8 Sekunden", "10 Sekunden"], correct: 2 },
-      { q: "Welches Displayglas kommt beim Pixel 10 zum Einsatz?", options: ["Aluminum Glass", "Saphierglas", "Corning® Gorilla® Glass Victus® 2", "Liquid OLED"], correct: 2 },
-      { q: "Welche Speichergröße bietet das Pixel 10 Pro XL erstmals standardmäßig?", options: ["128GB", "512GB", "256GB", "64GB"], correct: 2 },
-      { q: "Was macht das Aluminium in Raumfahrtqualität des Pixel 10 Pro nachhaltig?", options: ["Es ist zu 100 % recycelt.", "Es wird aus Raumschiffen gewonnen.", "Es wird aus Dosen hergestellt.", "Es ist biologisch abbaubar."], correct: 0 },
+      { q: "Wie lang können mit Veo3 erzeugte Videos maximal werden?", options: ["3 Sekunden", "5 Sekunden", "8 Sekunden", "10 Sekunden"], correct: 3 },
+      { q: "Was macht das Aluminium in Raumfahrtqualität der Pixel-Geräte nachhaltig?", options: ["Es ist zu 100 % recycelt.", "Es wird aus Raumschiffen gewonnen.", "Es wird aus Dosen hergestellt.", "Es ist biologisch abbaubar."], correct: 0 },
       { q: "Wie ruft man Gemini auf dem Pixel standardmäßig auf?", options: ["Power-Taste lang drücken", "Lauter-Taste", "Display antippen", "Schütteln"], correct: 0 }
     ];
 
@@ -157,7 +157,7 @@
       );
     };
 
-    const QuizScreen = ({ question, index, onAnswer, timeLeft, showResults, userAnswer }) => {
+    const QuizScreen = ({ question, index, onAnswer, timeLeft, showResults, userAnswer, isDoublePoints }) => {
       return (
         <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4 md:p-8 animate-in overflow-y-auto">
           <TimerCircle seconds={timeLeft} />
@@ -166,9 +166,17 @@
               Frage {index + 1} von 15
             </span>
           </div>
-          <div className="glass-panel p-6 md:p-12 mb-8 border-l-8 border-l-blue-500">
+          
+          <div className={`glass-panel p-6 md:p-12 mb-8 border-l-8 ${isDoublePoints ? 'border-l-yellow-400' : 'border-l-blue-500'} relative`}>
+            {isDoublePoints && (
+              <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1 animate-bounce">
+                <Star size={12} fill="currentColor" />
+                2x PUNKTE
+              </div>
+            )}
             <h2 className="text-xl md:text-3xl font-bold text-gray-900 leading-tight">{question.q}</h2>
           </div>
+
           <div className="grid grid-cols-1 gap-4">
             {question.options.map((opt, i) => {
               const isCorrect = i === question.correct;
@@ -295,6 +303,9 @@
       const currentQ = QUESTIONS[gameState.currentQuestionIndex || 0];
       const sortedUsers = [...users].sort((a,b) => b.score - a.score);
       const answersCount = users.filter(u => u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null).length;
+      
+      const isDoublePoints = gameState.doublePoints?.[gameState.currentQuestionIndex];
+      const reveal = gameState.showResults;
 
       return (
         <div className="flex-1 p-4 md:p-12 max-w-6xl mx-auto w-full overflow-y-auto bg-gray-50/50">
@@ -315,7 +326,14 @@
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-10">
             <div className="xl:col-span-2">
               {gameState.status === 'running' ? (
-                <div className="glass-panel p-8 md:p-12 border-l-[12px] border-l-blue-500 animate-in">
+                <div className={`glass-panel p-8 md:p-12 border-l-[12px] ${isDoublePoints ? 'border-l-yellow-400' : 'border-l-blue-500'} animate-in relative`}>
+                  {isDoublePoints && (
+                    <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 text-sm font-bold px-4 py-2 rounded-full shadow-md flex items-center gap-2 animate-bounce">
+                      <Star size={16} fill="currentColor" />
+                      DOPPELTE PUNKTE RUNDE
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-center mb-8">
                     <span className="bg-blue-100 text-blue-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / 15</span>
                     <div className="flex items-center gap-2 text-gray-500 font-bold">
@@ -327,16 +345,19 @@
                   <h2 className="text-2xl md:text-4xl font-bold mb-10 text-gray-900 leading-tight">{currentQ.q}</h2>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-                    {currentQ.options.map((opt, i) => (
-                      <div key={i} className={`p-6 rounded-2xl border-2 flex justify-between items-center text-lg ${i === currentQ.correct ? 'bg-green-50 border-green-500 text-green-700 font-bold' : 'bg-white border-gray-100 text-gray-600'}`}>
-                        <span>{opt}</span>
-                        {i === currentQ.correct && <CheckCircle2 size={24} />}
-                      </div>
-                    ))}
+                    {currentQ.options.map((opt, i) => {
+                      const isCorrect = i === currentQ.correct;
+                      return (
+                        <div key={i} className={`p-6 rounded-2xl border-2 flex justify-between items-center text-lg ${reveal && isCorrect ? 'bg-green-50 border-green-500 text-green-700 font-bold' : 'bg-white border-gray-100 text-gray-600'}`}>
+                          <span>{opt}</span>
+                          {reveal && isCorrect && <CheckCircle2 size={24} />}
+                        </div>
+                      );
+                    })}
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4">
-                    {!gameState.showResults ? (
+                    {!reveal ? (
                       <button onClick={onReveal} className="flex-1 py-5 bg-blue-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"><Eye size={24}/> Antwort auflösen</button>
                     ) : (
                       <button onClick={onNextQuestion} className="flex-1 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
@@ -496,11 +517,14 @@
         setUserAnswer(idx);
         
         const isCorrect = QUESTIONS[gameState.currentQuestionIndex].correct === idx;
+        const isDouble = gameState.doublePoints?.[gameState.currentQuestionIndex];
+        const pointsToAward = isCorrect ? (isDouble ? 20 : 10) : 0;
+        
         const currentScore = allUsers.find(u => u.id === userId)?.score || 0;
         
         await updateDoc(doc(db, 'artifacts', appId, 'users', userId), { 
           lastAnswerIndex: idx,
-          score: currentScore + (isCorrect ? 10 : 0)
+          score: currentScore + pointsToAward
         });
       };
 
@@ -518,10 +542,15 @@
       const adminStart = async () => {
         const endTime = new Date();
         endTime.setMinutes(endTime.getMinutes() + 20); // 20 Minuten Gesamt-Timer
+        
+        // Zufällige Verteilung der "Double Points" Runden (ca. 30% Chance pro Frage)
+        const randomDoublePoints = Array.from({length: QUESTIONS.length}, () => Math.random() < 0.3);
+
         await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { 
           status: 'running', 
           currentQuestionIndex: 0, 
-          showResults: false, 
+          showResults: false,
+          doublePoints: randomDoublePoints,
           endTime 
         });
       };
@@ -585,8 +614,18 @@
         </div>
       );
       
-      if (step === 'quiz') return <QuizScreen question={QUESTIONS[gameState.currentQuestionIndex]} index={gameState.currentQuestionIndex} onAnswer={handleAnswer} timeLeft={timeLeft} showResults={gameState.showResults} userAnswer={userAnswer} />;
+      if (step === 'quiz') return <QuizScreen 
+          question={QUESTIONS[gameState.currentQuestionIndex]} 
+          index={gameState.currentQuestionIndex} 
+          onAnswer={handleAnswer} 
+          timeLeft={timeLeft} 
+          showResults={gameState.showResults} 
+          userAnswer={userAnswer}
+          isDoublePoints={gameState.doublePoints?.[gameState.currentQuestionIndex]} 
+        />;
+      
       if (step === 'feedback') return <FeedbackScreen onFinish={handleFinishFeedback} />;
+      
       if (step === 'podium') return <PodiumScreen leaderboard={allUsers} score={allUsers.find(u => u.id === userId)?.score || 0} name={user.name} />;
 
       // Fallback Ladebildschirm
