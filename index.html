@@ -447,6 +447,13 @@
             
             // GATEKEEPER-LOGIK: Das System ändert den Screen (Step) NUR, wenn ein Nutzer bereits existiert (angemeldet ist)
             if (user) {
+              // NEU: Session-ID Logik. Wenn der Admin resettet, ändert sich die ID und alte Teilnehmer werden zum Login zurückgeschickt.
+              if (!user.isAdmin && data.sessionId && user.sessionId && data.sessionId !== user.sessionId) {
+                  setUser(null);
+                  setStep('login');
+                  return;
+              }
+
               if (data.status === 'running') {
                 setStep('quiz');
                 if (data.endTime) {
@@ -482,19 +489,27 @@
           const q = query(collection(db, 'artifacts', appId, 'users'));
           const unsub = onSnapshot(q, snap => {
             const list = [];
-            snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+            const currentSessionId = gameState.sessionId || 'default';
+            snap.forEach(d => {
+              const data = d.data();
+              // NUR Teilnehmer der aktuellen Session im Dashboard anzeigen (alte bleiben aber in der Datenbank)!
+              if (data.sessionId === currentSessionId) {
+                list.push({ id: d.id, ...data });
+              }
+            });
             setAllUsers(list);
           }, (error) => console.error(error));
           return () => unsub();
         }
-      }, [userId, user?.isAdmin, step]);
+      }, [userId, user?.isAdmin, step, gameState.sessionId]);
 
       // --- LOGIK FUNKTIONEN ---
 
       const handleJoin = async (name) => {
         if (!userId) return;
         const isAdmin = name.toLowerCase() === 'admin';
-        const uData = { name, isAdmin, score: 0, finished: false };
+        const currentSessionId = gameState.sessionId || 'default';
+        const uData = { name, isAdmin, score: 0, finished: false, sessionId: currentSessionId };
         
         // Zuerst den lokalen Status aktualisieren (damit der Gatekeeper öffnet)
         setUser(uData);
@@ -552,32 +567,35 @@
           showResults: false,
           doublePoints: randomDoublePoints,
           endTime 
-        });
+        }, { merge: true });
       };
 
       const adminReveal = async () => {
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { showResults: true });
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { showResults: true }, { merge: true });
       };
 
       const adminNext = async () => {
         const nextIndex = (gameState.currentQuestionIndex || 0) + 1;
         if (nextIndex < 15) {
-          // Alle Live-Antworten in der Datenbank bereinigen für die nächste Runde
-          const usersSnap = await getDocs(collection(db, 'artifacts', appId, 'users'));
-          const updatePromises = usersSnap.docs.map(uDoc => updateDoc(uDoc.ref, { lastAnswerIndex: null }));
+          // Nur die aktiven Teilnehmer der aktuellen Session zurücksetzen (Datenbank-Schonend)
+          const updatePromises = allUsers.map(u => updateDoc(doc(db, 'artifacts', appId, 'users', u.id), { lastAnswerIndex: null }));
           await Promise.all(updatePromises);
           
-          await updateDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { currentQuestionIndex: nextIndex, showResults: false });
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { currentQuestionIndex: nextIndex, showResults: false }, { merge: true });
         } else {
-          await updateDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'feedback' });
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'feedback' }, { merge: true });
         }
       };
 
       const adminReset = async () => {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'waiting', currentQuestionIndex: 0 });
-        const usersSnap = await getDocs(collection(db, 'artifacts', appId, 'users'));
-        const updatePromises = usersSnap.docs.map(uDoc => updateDoc(uDoc.ref, { score: 0, lastAnswerIndex: null, finished: false }));
-        await Promise.all(updatePromises);
+        const newSessionId = Date.now().toString();
+        // Kein 'merge: true' hier, um alte Timer und DoublePoints restlos zu löschen.
+        // Die Datenbank-Dokumente der User bleiben erhalten, werden aber durch die neue Session-ID ausgeblendet!
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { 
+          status: 'waiting', 
+          currentQuestionIndex: 0,
+          sessionId: newSessionId
+        });
       };
 
       const adminToPodium = async () => {
@@ -586,50 +604,69 @@
 
       // --- RENDERING GATEKEEPER ---
       
+      let content = null;
+
       // Regel 1: Ohne "user"-Objekt kommst du an dieser Maske niemals vorbei.
-      if (!user) return <LoginScreen onJoin={handleJoin} />;
-
+      if (!user) {
+        content = <LoginScreen onJoin={handleJoin} />;
+      }
       // Regel 2: Wenn du der Admin bist, erhältst du das Dashboard.
-      if (user.isAdmin) return (
-        <div className="flex-1 flex flex-col">
-          <AdminDashboard gameState={gameState} users={allUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} />
-          {gameState.status === 'feedback' && (
-             <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
-                <button onClick={adminToPodium} className="px-12 py-5 bg-yellow-500 text-white rounded-2xl font-bold shadow-2xl hover:bg-yellow-600 active:scale-95 transition-all text-xl">Podium anzeigen</button>
-             </div>
-          )}
-        </div>
-      );
-
-      // Regel 3: Für normale Teilnehmer werden die Status-Masken gerendert.
-      if (step === 'waiting') return (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in">
-          <div className="glass-panel p-12 max-w-sm w-full shadow-2xl">
-            <div className="w-24 h-24 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-              <User size={48} />
-            </div>
-            <h2 className="text-3xl font-bold mb-3 text-gray-900">Moin {user.name.split(' ')[0]}!</h2>
-            <p className="text-gray-500 leading-relaxed">Bitte hab einen Moment Geduld. Der Trainer startet die Session gleich.</p>
+      else if (user.isAdmin) {
+        content = (
+          <div className="flex-1 flex flex-col relative">
+            <AdminDashboard gameState={gameState} users={allUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} />
+            {gameState.status === 'feedback' && (
+               <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
+                  <button onClick={adminToPodium} className="px-12 py-5 bg-yellow-500 text-white rounded-2xl font-bold shadow-2xl hover:bg-yellow-600 active:scale-95 transition-all text-xl">Podium anzeigen</button>
+               </div>
+            )}
           </div>
+        );
+      }
+      // Regel 3: Für normale Teilnehmer werden die Status-Masken gerendert.
+      else if (step === 'waiting') {
+        content = (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in">
+            <div className="glass-panel p-12 max-w-sm w-full shadow-2xl">
+              <div className="w-24 h-24 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                <User size={48} />
+              </div>
+              <h2 className="text-3xl font-bold mb-3 text-gray-900">Moin {user.name.split(' ')[0]}!</h2>
+              <p className="text-gray-500 leading-relaxed">Bitte hab einen Moment Geduld. Der Trainer startet die Session gleich.</p>
+            </div>
+          </div>
+        );
+      } else if (step === 'quiz') {
+        content = <QuizScreen 
+            question={QUESTIONS[gameState.currentQuestionIndex]} 
+            index={gameState.currentQuestionIndex} 
+            onAnswer={handleAnswer} 
+            timeLeft={timeLeft} 
+            showResults={gameState.showResults} 
+            userAnswer={userAnswer}
+            isDoublePoints={gameState.doublePoints?.[gameState.currentQuestionIndex]} 
+          />;
+      } else if (step === 'feedback') {
+        content = <FeedbackScreen onFinish={handleFinishFeedback} />;
+      } else if (step === 'podium') {
+        content = <PodiumScreen leaderboard={allUsers} score={allUsers.find(u => u.id === userId)?.score || 0} name={user.name} />;
+      } else {
+        // Fallback Ladebildschirm
+        content = <div className="flex-1 flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
+      }
+
+      return (
+        <div className="flex-1 flex flex-col w-full h-full relative">
+          {/* GLOBALE HEADER LOGOS */}
+          <div className="w-full flex justify-between items-center px-6 md:px-10 pt-6 shrink-0 z-50">
+            <img src="https://i.postimg.cc/gJVH7YL6/image_(23).png" alt="Logo Links" className="h-8 md:h-12 lg:h-14 object-contain" />
+            <img src="https://i.postimg.cc/3RYySfcs/google-icon-logo-new-old.png" alt="Google Logo" className="h-8 md:h-12 lg:h-14 object-contain" />
+          </div>
+          
+          {/* SEITENINHALT */}
+          {content}
         </div>
       );
-      
-      if (step === 'quiz') return <QuizScreen 
-          question={QUESTIONS[gameState.currentQuestionIndex]} 
-          index={gameState.currentQuestionIndex} 
-          onAnswer={handleAnswer} 
-          timeLeft={timeLeft} 
-          showResults={gameState.showResults} 
-          userAnswer={userAnswer}
-          isDoublePoints={gameState.doublePoints?.[gameState.currentQuestionIndex]} 
-        />;
-      
-      if (step === 'feedback') return <FeedbackScreen onFinish={handleFinishFeedback} />;
-      
-      if (step === 'podium') return <PodiumScreen leaderboard={allUsers} score={allUsers.find(u => u.id === userId)?.score || 0} name={user.name} />;
-
-      // Fallback Ladebildschirm
-      return <div className="flex-1 flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
     };
 
     const root = createRoot(document.getElementById('root'));
