@@ -73,7 +73,7 @@
     import { initializeApp } from 'firebase/app';
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
     import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, query, getDocs, getDoc, increment } from 'firebase/firestore';
-    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer, KeyRound, Download } from 'lucide-react';
+    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer, KeyRound } from 'lucide-react';
 
     let firebaseConfig;
     if (typeof __firebase_config !== 'undefined') {
@@ -340,42 +340,6 @@
       const isDoublePoints = gameState.doublePoints?.[gameState.currentQuestionIndex];
       const reveal = gameState.showResults;
 
-      // CSV EXPORT LOGIK
-      const exportCSV = () => {
-        let csvContent = "\uFEFF"; // UTF-8 BOM für Excel Kompatibilität
-        csvContent += "Teilnehmer,Punkte,Feedback_Training,Feedback_Empfehlung";
-        QUESTIONS.forEach((_, i) => csvContent += `,Frage_${i+1}_Antwort`);
-        csvContent += "\r\n";
-
-        sortedUsers.forEach(u => {
-          if(u.isAdmin) return;
-          const f1 = u.feedback?.r1 || '-';
-          const f2 = u.feedback?.r2 || '-';
-          let row = `"${u.name}",${u.score},${f1},${f2}`;
-          
-          QUESTIONS.forEach((q, i) => {
-            const ansIdx = u.answers ? u.answers[i] : undefined;
-            let ansText = "-";
-            if (ansIdx === -1) {
-                ansText = "Zeit abgelaufen (Keine Antwort)";
-            } else if (ansIdx !== undefined && ansIdx !== null) {
-                ansText = q.options[ansIdx];
-            }
-            row += `,"${ansText.replace(/"/g, '""')}"`;
-          });
-          csvContent += row + "\r\n";
-        });
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `Pixel10a_Auswertung_${roomCode || 'Lobby'}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      };
-
       return (
         <div className="flex-1 p-4 md:p-12 max-w-6xl mx-auto w-full overflow-y-auto">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
@@ -387,9 +351,6 @@
               </p>
             </div>
             <div className="flex gap-4">
-              <button onClick={exportCSV} className="p-4 bg-white border border-gray-200 rounded-2xl text-blue-600 hover:bg-blue-50 transition-all flex items-center gap-2" title="Ergebnisse als CSV exportieren">
-                <Download size={20}/><span className="font-bold hidden sm:inline">Export</span>
-              </button>
               {gameState.status === 'waiting' ? (
                 <button onClick={onStart} className="px-8 py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center gap-3 shadow-xl shadow-green-100 hover:bg-green-600 active:scale-95 transition-all"><Play size={20}/> Quiz starten</button>
               ) : (
