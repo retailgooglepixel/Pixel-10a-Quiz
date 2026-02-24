@@ -72,8 +72,8 @@
     import { createRoot } from 'react-dom/client';
     import { initializeApp } from 'firebase/app';
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-    import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, query, getDocs, increment } from 'firebase/firestore';
-    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer } from 'lucide-react';
+    import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, query, getDocs, getDoc, increment } from 'firebase/firestore';
+    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer, KeyRound } from 'lucide-react';
 
     let firebaseConfig;
     if (typeof __firebase_config !== 'undefined') {
@@ -92,7 +92,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'pixel-10a-live-training-sync-v2';
+    const BASE_APP_ID = 'pixel-10a-live-training';
 
     // FEHLERFREIE 15 FRAGEN (Ausschließlich Multiple Choice & Stallion Sheet)
     const QUESTIONS = [
@@ -126,6 +126,7 @@
 
     const LoginScreen = ({ onJoin }) => {
       const [name, setName] = useState('');
+      const [room, setRoom] = useState('');
       return (
         <div className="flex-1 flex items-center justify-center p-4 animate-in">
           <div className="glass-panel w-full max-w-md p-10 text-center shadow-2xl">
@@ -134,7 +135,15 @@
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Google Pixel 10a</h1>
             <p className="text-blue-600 font-bold uppercase tracking-widest text-[10px] mb-10">Live Training Session</p>
-            <form onSubmit={(e) => { e.preventDefault(); if(name.trim()) onJoin(name.trim()); }} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); if(name.trim() && room.trim()) onJoin(name.trim(), room.trim()); }} className="space-y-4">
+              <input 
+                type="text" 
+                value={room}
+                onChange={(e) => setRoom(e.target.value.toUpperCase())}
+                className="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:outline-none bg-white text-lg transition-all text-center uppercase tracking-widest font-bold text-blue-800 placeholder:text-gray-400 placeholder:font-normal"
+                placeholder="Raum-Code (z.B. HAMBURG)"
+                required
+              />
               <input 
                 type="text" 
                 value={name}
@@ -145,8 +154,8 @@
               />
               <button 
                 type="submit"
-                disabled={!name.trim()}
-                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50"
+                disabled={!name.trim() || !room.trim()}
+                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 mt-4"
               >
                 Teilnehmen
               </button>
@@ -321,7 +330,7 @@
       );
     };
 
-    const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft }) => {
+    const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft, roomCode }) => {
       const currentQ = QUESTIONS[gameState.currentQuestionIndex || 0];
       const sortedUsers = [...users].sort((a,b) => b.score - a.score);
       const answersCount = users.filter(u => u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null).length;
@@ -333,14 +342,17 @@
         <div className="flex-1 p-4 md:p-12 max-w-6xl mx-auto w-full overflow-y-auto">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">Live Session Control</h1>
-              <p className="text-gray-500">Google Pixel 10a Live Session</p>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">Live Session Control</h1>
+              <p className="text-gray-500 mt-1 flex items-center gap-3">
+                Google Pixel 10a Live Session 
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><KeyRound size={12}/> RAUM: {roomCode}</span>
+              </p>
             </div>
             <div className="flex gap-4">
               {gameState.status === 'waiting' ? (
                 <button onClick={onStart} className="px-10 py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center gap-3 shadow-xl shadow-green-100 hover:bg-green-600 active:scale-95 transition-all"><Play size={20}/> Quiz starten</button>
               ) : (
-                <button onClick={onReset} className="p-4 bg-white border border-gray-200 rounded-2xl text-gray-500 hover:bg-gray-100 transition-all"><RefreshCcw size={20}/></button>
+                <button onClick={onReset} className="p-4 bg-white border border-gray-200 rounded-2xl text-gray-500 hover:bg-gray-100 transition-all" title="Reset Session"><RefreshCcw size={20}/></button>
               )}
             </div>
           </div>
@@ -363,7 +375,7 @@
                         <Clock size={14} /> {timeLeft} Sek
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-500 font-bold bg-white/50 px-4 py-2 rounded-full">
+                    <div className="flex items-center gap-2 text-gray-500 font-bold bg-white/50 px-4 py-2 rounded-full border border-gray-100">
                       <User size={18} /> 
                       <span>{answersCount} / {users.length} Antworten</span>
                     </div>
@@ -399,7 +411,7 @@
                       <Users size={40} />
                    </div>
                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Bereit für den Start?</h2>
-                   <p className="text-gray-500">Sobald alle Teilnehmer beigetreten sind, kannst du das Quiz starten.</p>
+                   <p className="text-gray-500">Sag den Teilnehmern, sie sollen den Raum-Code <strong className="text-blue-600">{roomCode}</strong> eingeben.</p>
                 </div>
               )}
             </div>
@@ -440,6 +452,8 @@
       const [userAnswer, setUserAnswer] = useState(null);
       const [timeLeft, setTimeLeft] = useState(0);
       const [step, setStep] = useState('login'); 
+      const [activeRoom, setActiveRoom] = useState(null);
+      const [roomCodeUI, setRoomCodeUI] = useState('');
 
       const userRef = useRef(null);
       const userAnswerRef = useRef(null);
@@ -467,9 +481,10 @@
         return () => unsubscribe();
       }, []);
 
+      // Echtzeit GameState auslesen (Abhängig vom aktiven Raum)
       useEffect(() => {
-        if (!userId) return;
-        const gameRef = doc(db, 'artifacts', appId, 'public', 'gameState');
+        if (!userId || !activeRoom) return;
+        const gameRef = doc(db, 'artifacts', activeRoom, 'public', 'gameState');
         
         const unsub = onSnapshot(gameRef, snap => {
           if (snap.exists()) {
@@ -477,13 +492,14 @@
             setGameState(data);
             
             if (user) {
+              // Session ID Check: Kickt alte Teilnehmer raus, wenn Admin resettet hat
               if (!user.isAdmin && data.sessionId && user.sessionId && data.sessionId !== user.sessionId) {
                   setUser(null);
+                  setActiveRoom(null);
                   setStep('login');
                   return;
               }
 
-              // Garantiert korrekte Bildschirmzuteilung (Admin sieht Podium!)
               if (data.status === 'podium') {
                   setStep('podium');
               } else if (user.isAdmin) {
@@ -500,7 +516,7 @@
         }, (error) => console.error("Snapshot error", error));
         
         return () => unsub();
-      }, [userId, user]);
+      }, [userId, user, activeRoom]);
 
       useEffect(() => {
         setUserAnswer(null);
@@ -528,9 +544,9 @@
       }, [gameState.status, gameState.currentQuestionIndex, gameState.showResults]);
 
       useEffect(() => {
-        if (!userId) return;
+        if (!userId || !activeRoom) return;
         if (user?.isAdmin || step === 'podium' || step === 'admin') {
-          const q = query(collection(db, 'artifacts', appId, 'users'));
+          const q = query(collection(db, 'artifacts', activeRoom, 'users'));
           const unsub = onSnapshot(q, snap => {
             const list = [];
             const currentSessionId = gameState.sessionId || 'default';
@@ -544,21 +560,41 @@
           }, (error) => console.error(error));
           return () => unsub();
         }
-      }, [userId, user?.isAdmin, step, gameState.sessionId]);
+      }, [userId, user?.isAdmin, step, gameState.sessionId, activeRoom]);
 
-      const handleJoin = async (name) => {
+      const handleJoin = async (name, enteredRoomCode) => {
         if (!userId) return;
-        const isAdmin = name.toLowerCase() === 'admin';
-        const currentSessionId = gameState.sessionId || 'default';
-        const uData = { name, isAdmin, score: 0, finished: false, sessionId: currentSessionId };
         
+        const safeRoomCode = enteredRoomCode.toUpperCase();
+        const newRoom = `${BASE_APP_ID}-${safeRoomCode}`;
+        const isAdmin = name.toLowerCase() === 'admin';
+        
+        setRoomCodeUI(safeRoomCode);
+        setActiveRoom(newRoom);
+
+        // Lade den aktuellen Raum-Status
+        const gameRef = doc(db, 'artifacts', newRoom, 'public', 'gameState');
+        const gameSnap = await getDoc(gameRef);
+        
+        let currentStatus = 'waiting';
+        let currentSessionId = 'default';
+
+        if (gameSnap.exists()) {
+            currentStatus = gameSnap.data().status || 'waiting';
+            currentSessionId = gameSnap.data().sessionId || 'default';
+        } else if (isAdmin) {
+            // Wenn der Raum noch nicht existiert und man Admin ist, initialisieren
+            await setDoc(gameRef, { status: 'waiting', currentQuestionIndex: 0, sessionId: 'default' });
+        }
+
+        const uData = { name, isAdmin, score: 0, finished: false, sessionId: currentSessionId };
         setUser(uData);
         
         if (!isAdmin) {
-          await setDoc(doc(db, 'artifacts', appId, 'users', userId), uData);
-          if (gameState.status === 'running') setStep('quiz');
-          else if (gameState.status === 'feedback') setStep('feedback');
-          else if (gameState.status === 'podium') setStep('podium');
+          await setDoc(doc(db, 'artifacts', newRoom, 'users', userId), uData);
+          if (currentStatus === 'running') setStep('quiz');
+          else if (currentStatus === 'feedback') setStep('feedback');
+          else if (currentStatus === 'podium') setStep('podium');
           else setStep('waiting');
         } else {
           setStep('admin');
@@ -566,7 +602,7 @@
       };
 
       const handleAnswer = async (idx) => {
-        if (userAnswerRef.current !== null || !userId) return;
+        if (userAnswerRef.current !== null || !userId || !activeRoom) return;
         
         setUserAnswer(idx); 
         
@@ -574,15 +610,15 @@
         const isDouble = gameState.doublePoints?.[gameState.currentQuestionIndex];
         const pointsToAward = isCorrect ? (isDouble ? 20 : 10) : 0;
         
-        await updateDoc(doc(db, 'artifacts', appId, 'users', userId), { 
+        await updateDoc(doc(db, 'artifacts', activeRoom, 'users', userId), { 
           lastAnswerIndex: idx,
           score: increment(pointsToAward) 
         });
       };
 
       const handleFinishFeedback = async (f1, f2) => {
-        if(!userId) return;
-        await updateDoc(doc(db, 'artifacts', appId, 'users', userId), { 
+        if(!userId || !activeRoom) return;
+        await updateDoc(doc(db, 'artifacts', activeRoom, 'users', userId), { 
           finished: true, 
           feedback: { r1: f1, r2: f2 } 
         });
@@ -590,9 +626,9 @@
       };
 
       const adminStart = async () => {
+        if (!activeRoom) return;
         const randomDoublePoints = Array.from({length: QUESTIONS.length}, () => Math.random() < 0.3);
-
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { 
+        await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { 
           status: 'running', 
           currentQuestionIndex: 0, 
           showResults: false,
@@ -601,27 +637,30 @@
       };
 
       const adminReveal = async () => {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { showResults: true }, { merge: true });
+        if (!activeRoom) return;
+        await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { showResults: true }, { merge: true });
       };
 
       const adminNext = async () => {
+        if (!activeRoom) return;
         const nextIndex = (gameState.currentQuestionIndex || 0) + 1;
         if (nextIndex < 15) {
-          const updatePromises = allUsers.map(u => updateDoc(doc(db, 'artifacts', appId, 'users', u.id), { lastAnswerIndex: null }));
+          const updatePromises = allUsers.map(u => updateDoc(doc(db, 'artifacts', activeRoom, 'users', u.id), { lastAnswerIndex: null }));
           await Promise.all(updatePromises);
           
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { 
+          await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { 
             currentQuestionIndex: nextIndex, 
             showResults: false 
           }, { merge: true });
         } else {
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'feedback' }, { merge: true });
+          await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { status: 'feedback' }, { merge: true });
         }
       };
 
       const adminReset = async () => {
+        if (!activeRoom) return;
         const newSessionId = Date.now().toString();
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { 
+        await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { 
           status: 'waiting', 
           currentQuestionIndex: 0,
           sessionId: newSessionId
@@ -629,7 +668,8 @@
       };
 
       const adminToPodium = async () => {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'gameState'), { status: 'podium' }, { merge: true });
+        if (!activeRoom) return;
+        await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { status: 'podium' }, { merge: true });
       };
 
       let content = null;
@@ -649,7 +689,7 @@
       else if (step === 'admin' || user.isAdmin) {
         content = (
           <div className="flex-1 flex flex-col relative">
-            <AdminDashboard gameState={gameState} users={allUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} timeLeft={timeLeft} />
+            <AdminDashboard gameState={gameState} users={allUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} timeLeft={timeLeft} roomCode={roomCodeUI} />
             {gameState.status === 'feedback' && (
                <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
                   <button onClick={adminToPodium} className="px-12 py-5 bg-yellow-500 text-white rounded-2xl font-bold shadow-2xl hover:bg-yellow-600 active:scale-95 transition-all text-xl whitespace-nowrap">Siegerpodest anzeigen</button>
@@ -666,7 +706,7 @@
                 <User size={48} />
               </div>
               <h2 className="text-3xl font-bold mb-3 text-gray-900">Moin {user.name.split(' ')[0]}!</h2>
-              <p className="text-gray-500 leading-relaxed">Bitte hab einen Moment Geduld. Der Trainer startet die Session gleich.</p>
+              <p className="text-gray-500 leading-relaxed">Bitte hab einen Moment Geduld. Der Trainer startet die Session gleich im Raum <strong className="text-blue-600">{roomCodeUI}</strong>.</p>
             </div>
           </div>
         );
