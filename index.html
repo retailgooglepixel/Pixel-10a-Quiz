@@ -94,7 +94,7 @@
     const db = getFirestore(app);
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'pixel-10a-live-training-sync-v2';
 
-    // 15 FEHLERFREIE FRAGEN (Ausschließlich aus dem Stallion Dokument)
+    // FEHLERFREIE 15 FRAGEN (Ausschließlich Multiple Choice & Stallion Sheet)
     const QUESTIONS = [
       { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
       { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
@@ -305,8 +305,8 @@
           </div>
           
           {user?.isAdmin ? (
-            <div className="mt-8 text-center">
-              <button onClick={onAdminReset} className="px-10 py-4 bg-gray-800 text-white rounded-2xl font-bold hover:bg-gray-700 active:scale-95 transition-all shadow-xl">
+            <div className="mt-8 text-center relative z-20">
+              <button onClick={onAdminReset} className="px-10 py-4 bg-gray-800 text-white rounded-2xl font-bold hover:bg-gray-700 active:scale-95 transition-all shadow-xl cursor-pointer pointer-events-auto">
                 Neues Training starten (Reset)
               </button>
             </div>
@@ -483,12 +483,18 @@
                   return;
               }
 
-              // Setzt den korrekten Bildschirm auf Basis des Spielstatus
-              if (data.status === 'podium') setStep('podium');
-              else if (user.isAdmin) setStep('admin');
-              else if (data.status === 'running') setStep('quiz');
-              else if (data.status === 'feedback') setStep('feedback');
-              else if (data.status === 'waiting') setStep('waiting');
+              // Garantiert korrekte Bildschirmzuteilung (Admin sieht Podium!)
+              if (data.status === 'podium') {
+                  setStep('podium');
+              } else if (user.isAdmin) {
+                  setStep('admin');
+              } else if (data.status === 'running') {
+                  setStep('quiz');
+              } else if (data.status === 'feedback') {
+                  setStep('feedback');
+              } else if (data.status === 'waiting') {
+                  setStep('waiting');
+              }
             }
           }
         }, (error) => console.error("Snapshot error", error));
@@ -640,7 +646,7 @@
             onAdminReset={adminReset} 
           />;
       }
-      else if (user.isAdmin) {
+      else if (step === 'admin' || user.isAdmin) {
         content = (
           <div className="flex-1 flex flex-col relative">
             <AdminDashboard gameState={gameState} users={allUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} timeLeft={timeLeft} />
@@ -683,7 +689,7 @@
       return (
         <div className="flex-1 flex flex-col w-full h-full relative">
           <div className="w-full flex justify-center items-center px-6 md:px-10 pt-8 pb-4 shrink-0 z-50">
-            <img src="https://i.postimg.cc/3RYySfcs/google-icon-logo-new-old.png" alt="Google Logo" className="h-12 md:h-16 lg:h-20 object-contain drop-shadow-sm" />
+            <img src="https://i.postimg.cc/3RYySfcs/google-icon-logo-new-old.png" alt="Google Logo" className="h-16 md:h-24 lg:h-28 object-contain drop-shadow-sm" />
           </div>
           {content}
         </div>
