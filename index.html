@@ -73,13 +73,12 @@
     import { initializeApp } from 'firebase/app';
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
     import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, query, getDocs, getDoc, increment } from 'firebase/firestore';
-    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer, KeyRound, Download } from 'lucide-react';
+    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer, KeyRound } from 'lucide-react';
 
     let firebaseConfig;
     if (typeof __firebase_config !== 'undefined') {
       firebaseConfig = JSON.parse(__firebase_config);
     } else {
-      // Deine eigene Firebase-Konfiguration
       firebaseConfig = {
         apiKey: "AIzaSyBrEdY01zkWxJTZNNEPxXUvCzqYm4bLmGw",
         authDomain: "quiz10a.firebaseapp.com",
@@ -96,7 +95,7 @@
     const db = getFirestore(app);
     const BASE_APP_ID = 'pixel-10a-live-training';
 
-    // FEHLERFREIE 15 FRAGEN (Ausschließlich aus dem Stallion Sheet - Pixel 10a)
+    // FEHLERFREIE 15 FRAGEN (Pixel 10a)
     const QUESTIONS = [
       { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen und schneller Antworten finden kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
       { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
@@ -333,28 +332,12 @@
     };
 
     const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft, roomCode }) => {
-      const [exportStatus, setExportStatus] = useState("idle");
       const currentQ = QUESTIONS[gameState.currentQuestionIndex || 0];
       const sortedUsers = [...users].sort((a,b) => b.score - a.score);
       const answersCount = users.filter(u => u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null).length;
       
       const isDoublePoints = gameState.doublePoints?.[gameState.currentQuestionIndex];
       const reveal = gameState.showResults;
-
-      const triggerSheetExport = () => {
-        setExportStatus("loading");
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbyTHXZ14JKIMPw6MHGRSBDbuzy36O_n18RDJhZtkBbeaj0rEZTfMUYWW4WFSNvad6Fe/exec";
-        // Aufruf der Web-App-URL inklusive des aktuellen Raum-Codes
-        fetch(scriptUrl + "?raumCode=" + roomCode, { mode: 'no-cors' })
-          .then(() => {
-             setExportStatus("success");
-             setTimeout(() => setExportStatus("idle"), 3000);
-          })
-          .catch(e => {
-             console.error(e);
-             setExportStatus("idle");
-          });
-      };
 
       return (
         <div className="flex-1 p-4 md:p-12 max-w-6xl mx-auto w-full overflow-y-auto">
@@ -367,9 +350,6 @@
               </p>
             </div>
             <div className="flex gap-4">
-              <button onClick={triggerSheetExport} disabled={exportStatus === "loading"} className={`p-4 bg-white border border-gray-200 rounded-2xl transition-all flex items-center gap-2 ${exportStatus === "success" ? "text-green-600 border-green-300 bg-green-50" : "text-blue-600 hover:bg-blue-50"}`} title="An Google Sheets senden">
-                <Download size={20}/><span className="font-bold hidden sm:inline">{exportStatus === "success" ? "Gesendet!" : exportStatus === "loading" ? "Sendet..." : "Sheets Export"}</span>
-              </button>
               {gameState.status === 'waiting' ? (
                 <button onClick={onStart} className="px-8 py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center gap-3 shadow-xl shadow-green-100 hover:bg-green-600 active:scale-95 transition-all"><Play size={20}/> Quiz starten</button>
               ) : (
@@ -605,7 +585,6 @@
             await setDoc(gameRef, { status: 'waiting', currentQuestionIndex: 0, sessionId: 'default' });
         }
 
-        // INIT TRACKING: 'answers' Objekt hinzugefügt
         const uData = { name, isAdmin, score: 0, finished: false, sessionId: currentSessionId, answers: {} };
         setUser(uData);
         
@@ -629,7 +608,6 @@
         const isDouble = gameState.doublePoints?.[gameState.currentQuestionIndex];
         const pointsToAward = isCorrect ? (isDouble ? 20 : 10) : 0;
         
-        // UPDATE TRACKING: Speichere auch die spezifische Antwort-ID in die History (answers.FRAGEN_INDEX)
         await updateDoc(doc(db, 'artifacts', activeRoom, 'users', userId), { 
           lastAnswerIndex: idx,
           [`answers.${gameState.currentQuestionIndex}`]: idx,
