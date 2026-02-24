@@ -73,7 +73,7 @@
     import { initializeApp } from 'firebase/app';
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
     import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, query, getDocs, getDoc, increment } from 'firebase/firestore';
-    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer, KeyRound } from 'lucide-react';
+    import { Trophy, Smartphone, ArrowRight, Star, Clock, Play, Square, RefreshCcw, User, CheckCircle2, ChevronRight, Eye, Info, Users, Timer, KeyRound, Download } from 'lucide-react';
 
     let firebaseConfig;
     if (typeof __firebase_config !== 'undefined') {
@@ -101,9 +101,9 @@
       { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen und schneller Antworten finden kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
       { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
       { q: "Wie hilft 'Circle to Search' den Nutzern des Pixel 10a im Alltag?", options: ["Man kreist das Smartphone in der Luft", "Man kann Bilder/Texte einkreisen, um direkt danach zu suchen", "Es sucht automatisch nach WLAN", "Es organisiert Kontakte in Kreisen"], correct: 1 },
-      { q: "Welches Kamera-Feature sorgt dafür, dass auf Gruppenfotos jeder gut aussieht, indem ähnliche Fotos kombiniert werden?", options: ["Magischer Editor", "Scharfzeichnen", "Beste Aufnahme (Best Take)", "Nachtsicht"], correct: 2 },
+      { q: "Welches Kamera-Feature sorgt dafür, dass auf Gruppenfotos jeder gut aussieht, indem ähnliche Fotos kombiniert werden?", options: ["Magischer Editor", "Scharfzeichnen", "Beste Aufnahme (Auto Best Take)", "Nachtsicht"], correct: 2 },
       { q: "Wie unterstützt der 'Magische Audio-Radierer' beim Pixel 10a?", options: ["Er reduziert störende Hintergrundgeräusche in Videos", "Er fügt automatisch Musik zu Fotos hinzu", "Er löscht Sprachnachrichten", "Er verbessert die Lautsprecher-Qualität"], correct: 0 },
-      { q: "Was zeichnet das Actua-Display des Pixel 10a aus?", options: ["Es ist ein E-Ink-Display zum Lesen", "Es ist besonders hell und flüssig, ideal für draußen", "Es hat eine Auflösung von 8K", "Es lässt sich in der Mitte falten"], correct: 1 },
+      { q: "Was zeichnet das Actua-Display des Pixel 10a aus?", options: ["Es ist ein E-Ink-Display zum Lesen", "Es ist besonders hell und flüssig, dank bis zu 120 Hz Bildwiederholungsrate, ideal für draußen", "Es hat eine Auflösung von 8K", "Es lässt sich in der Mitte falten"], correct: 1 },
       { q: "Welche Funktion hilft dabei, verschwommene oder alte, unscharfe Fotos im Nachhinein zu retten?", options: ["Scharfzeichnen (Photo Unblur)", "Magischer Editor", "Super-Resolution-Zoom", "Astromodus"], correct: 0 },
       { q: "Welcher Prozessor treibt das Google Pixel 10a an und ermöglicht die schnellen KI-Funktionen?", options: ["Snapdragon 8 Gen 3", "Google Tensor G4", "Exynos 2400", "A16 Bionic"], correct: 1 },
       { q: "Wie schützt das Pixel 10a die Daten der Nutzer auf Hardware-Ebene?", options: ["Google Shield Protect", "Titan M2-Sicherheitschip", "Externe verschlüsselte SD-Karte", "Nox Secure"], correct: 1 },
@@ -333,12 +333,28 @@
     };
 
     const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft, roomCode }) => {
+      const [exportStatus, setExportStatus] = useState("idle");
       const currentQ = QUESTIONS[gameState.currentQuestionIndex || 0];
       const sortedUsers = [...users].sort((a,b) => b.score - a.score);
       const answersCount = users.filter(u => u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null).length;
       
       const isDoublePoints = gameState.doublePoints?.[gameState.currentQuestionIndex];
       const reveal = gameState.showResults;
+
+      const triggerSheetExport = () => {
+        setExportStatus("loading");
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbyTHXZ14JKIMPw6MHGRSBDbuzy36O_n18RDJhZtkBbeaj0rEZTfMUYWW4WFSNvad6Fe/exec";
+        // Aufruf der Web-App-URL inklusive des aktuellen Raum-Codes
+        fetch(scriptUrl + "?raumCode=" + roomCode, { mode: 'no-cors' })
+          .then(() => {
+             setExportStatus("success");
+             setTimeout(() => setExportStatus("idle"), 3000);
+          })
+          .catch(e => {
+             console.error(e);
+             setExportStatus("idle");
+          });
+      };
 
       return (
         <div className="flex-1 p-4 md:p-12 max-w-6xl mx-auto w-full overflow-y-auto">
@@ -351,6 +367,9 @@
               </p>
             </div>
             <div className="flex gap-4">
+              <button onClick={triggerSheetExport} disabled={exportStatus === "loading"} className={`p-4 bg-white border border-gray-200 rounded-2xl transition-all flex items-center gap-2 ${exportStatus === "success" ? "text-green-600 border-green-300 bg-green-50" : "text-blue-600 hover:bg-blue-50"}`} title="An Google Sheets senden">
+                <Download size={20}/><span className="font-bold hidden sm:inline">{exportStatus === "success" ? "Gesendet!" : exportStatus === "loading" ? "Sendet..." : "Sheets Export"}</span>
+              </button>
               {gameState.status === 'waiting' ? (
                 <button onClick={onStart} className="px-8 py-4 bg-green-500 text-white rounded-2xl font-bold flex items-center gap-3 shadow-xl shadow-green-100 hover:bg-green-600 active:scale-95 transition-all"><Play size={20}/> Quiz starten</button>
               ) : (
