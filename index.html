@@ -94,23 +94,23 @@
     const db = getFirestore(app);
     const BASE_APP_ID = 'pixel-10a-live-training';
 
-    // FEHLERFREIE 15 FRAGEN (Ausschließlich Multiple Choice & Stallion Sheet)
+    // FEHLERFREIE 15 FRAGEN (Ausschließlich Multiple Choice & passend zum Pixel 10a / Stallion)
     const QUESTIONS = [
-      { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
-      { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
-      { q: "Wie funktioniert die neue Gruppenaufnahme beim Pixel 10a?", options: ["Kamera erkennt Gruppe automatisch", "Man muss 5 Fotos manuell zusammenfügen", "Nur im Porträtmodus verfügbar", "Erfordert ein externes Stativ"], correct: 0 },
-      { q: "Welche Funktion hilft Hobby-Fotografen auf dem Pixel 10a, bessere Fotos zu machen?", options: ["Kamera-Coach", "Veo3", "Magisches Auge", "Pixel-Trainer"], correct: 0 },
-      { q: "Wie hoch ist die Leistungssteigerung der TPU des neuen Google Tensor G5?", options: ["25%", "60%", "50%", "15%"], correct: 1 },
-      { q: "Wie hoch ist die Leistungssteigerung der CPU im neuen Google Tensor G5 Prozessor?", options: ["15 %", "25 %", "50 %", "60 %"], correct: 1 },
-      { q: "Wie heißt die neue, auf Qi2 basierende Magnettechnologie für kabelloses Laden?", options: ["PixelDock", "MagCharge", "Pixelsnap", "TensorCharge"], correct: 1 },
-      { q: "Welches Angebot erhalten Käufer eines Pixel 10 Pro (XL) für ein Jahr kostenlos?", options: ["YouTube Premium", "Fitbit Premium", "Google One AI Premium (2 TB)", "Google Play Pass"], correct: 2 },
-      { q: "Worüber kannst du mit Gemini Live auf dem Pixel 10a sprechen?", options: ["Was du auf dem Bildschirm siehst", "Was mit deiner Kamera geteilt wird", "Beides", "Gar nichts von beidem"], correct: 2 },
-      { q: "Was können KI-generierte Videos dank Gemini und Veo3 bieten?", options: ["Sound", "Sprache", "Menschen", "Alles davon"], correct: 3 },
-      { q: "Welche Kamera-Ausstattung bietet das Pixel 10 Pro (XL)?", options: ["Nur Weitwinkel", "Dual-Kamera", "Dreifachkamerasystem (50/48/48 MP)", "Dual-Kamera mit 100 MP"], correct: 2 },
-      { q: "Wie viel RAM bietet das Pixel 10 Pro (XL) und das Pixel 10 Pro Fold?", options: ["8GB", "12GB", "16GB", "14GB"], correct: 2 },
-      { q: "Welcher Sicherheitschip ist in der Pixel 10 Serie enthalten?", options: ["Titan M", "Nox Secure", "Titan M2", "Google Shield Protect"], correct: 2 },
-      { q: "Wie lang können mit Veo3 erzeugte Videos maximal werden?", options: ["3 Sekunden", "5 Sekunden", "8 Sekunden", "10 Sekunden"], correct: 3 },
-      { q: "Was macht das Aluminium in Raumfahrtqualität der Pixel-Geräte nachhaltig?", options: ["Es ist zu 100 % recycelt", "Es wird aus Raumschiffen gewonnen", "Es wird aus Dosen hergestellt", "Es ist biologisch abbaubar"], correct: 0 }
+      { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen und schneller Antworten für sie finden kann. Was solltest du als wichtigstes Tool hervorheben, mit dem sie Zeit sparen und Ideen umsetzen kann?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
+      { q: "Ein Kunde zögert, in ein neues Smartphone zu investieren, weil er befürchtet, dass der Hersteller nach wenigen Jahren den Support einstellt. Welche Softwarezusage gibt Google für das Pixel 10a?", options: ["3 Jahre Betriebssystemupdates und 5 Jahre Sicherheitsupdates", "5 Jahre Betriebssystemupdates sowie monatliche Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates sowie Pixel Drops", "4 Jahre Betriebssystem-Support durch den Titan M2-Sicherheitschip"], correct: 2 },
+      { q: "Wie hilft 'Circle to Search' den Nutzern des Pixel 10a im Alltag?", options: ["Man kreist das Smartphone in der Luft, um die Kamera zu öffnen", "Man kann Bilder, Texte oder Videos einkreisen, um direkt danach zu suchen", "Es sucht automatisch nach WLAN-Netzwerken im Umkreis", "Es organisiert Kontakte in Kreisen"], correct: 1 },
+      { q: "Welches Kamera-Feature des Pixel 10a sorgt dafür, dass auf Gruppenfotos jeder gut aussieht, indem ähnliche Fotos kombiniert werden?", options: ["Magischer Radierer", "Scharfzeichnen", "Beste Aufnahme (Best Take)", "Nachtsicht"], correct: 2 },
+      { q: "Wie unterstützt der 'Magische Audio-Radierer' beim Pixel 10a?", options: ["Er reduziert störende Hintergrundgeräusche in Videos", "Er fügt automatisch Musik zu Fotos hinzu", "Er löscht Sprachnachrichten", "Er verbessert die Lautsprecher-Qualität beim Telefonieren"], correct: 0 },
+      { q: "Was zeichnet das Actua-Display des Pixel 10a aus?", options: ["Es ist ein E-Ink-Display zum Lesen", "Es ist besonders hell und flüssig, ideal für direkte Sonneneinstrahlung", "Es hat eine Auflösung von 8K", "Es lässt sich in der Mitte falten"], correct: 1 },
+      { q: "Welche Funktion hilft dabei, verschwommene oder unscharfe Fotos im Nachhinein auf dem Pixel 10a zu retten?", options: ["Scharfzeichnen (Photo Unblur)", "Magischer Radierer", "Super-Resolution-Zoom", "Astromodus"], correct: 0 },
+      { q: "Welcher Prozessor treibt das Google Pixel 10a an und ermöglicht die schnellen KI-Funktionen?", options: ["Snapdragon 8 Gen 3", "Google Tensor G4", "Exynos 2400", "A16 Bionic"], correct: 1 },
+      { q: "Wie schützt das Pixel 10a die Daten der Nutzer auf Hardware-Ebene?", options: ["Durch den Google Shield Protect", "Durch den Titan M2-Sicherheitschip", "Durch eine externe SD-Karte", "Durch Nox Secure"], correct: 1 },
+      { q: "Eine Kundin ist oft im Ausland unterwegs. Welche KI-Funktion des Pixel 10a hilft ihr bei Sprachbarrieren am besten?", options: ["Google Maps", "Live-Übersetzung", "Circle to Search", "Pixel Screenshots"], correct: 1 },
+      { q: "Was macht die 'Pixel Screenshots'-App auf dem Pixel 10a so besonders?", options: ["Sie speichert Screenshots automatisch in der Cloud", "Sie macht alle 10 Minuten einen Screenshot", "Sie nutzt KI, um Inhalte von Screenshots durchsuchbar zu machen", "Sie teilt Screenshots sofort auf Instagram"], correct: 2 },
+      { q: "Wie hilft das Pixel 10a Nutzern, die nachts fotografieren möchten?", options: ["Mit dem integrierten LED-Ringblitz", "Mit der Funktion 'Nachtsicht' (Night Sight)", "Durch automatische Aufhellung in Google Fotos", "Mit dem Makrofokus"], correct: 1 },
+      { q: "Was passiert, wenn ein Nutzer auf dem Pixel 10a einen unerwünschten Spam-Anruf erhält?", options: ["Der Anruf-Filter kann den Anruf prüfen und Spam automatisch blockieren", "Das Smartphone schaltet sich stumm", "Der Anrufer wird blockiert, aber die Mailbox wird voll", "Man muss eine Drittanbieter-App installieren"], correct: 0 },
+      { q: "Ein Kunde möchte störende Personen aus einem perfekten Urlaubsfoto entfernen. Welches Tool nutzt er auf dem Pixel 10a?", options: ["Scharfzeichnen", "Beste Aufnahme", "Magischer Radierer", "Action-Pan"], correct: 2 },
+      { q: "Wie optimiert das Pixel 10a seine Akkulaufzeit im Alltag?", options: ["Es schaltet das Display ab", "Es beendet alle Hintergrund-Apps stündlich", "Mit dem 'Intelligenten Akku', der die App-Nutzung lernt", "Es drosselt dauerhaft die Prozessorleistung"], correct: 2 }
     ];
 
     const TimerCircle = ({ seconds }) => (
