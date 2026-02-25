@@ -103,7 +103,7 @@
       { bg: 'bg-[#34A853]', text: 'text-white', border: 'border-[#34A853]' }
     ];
 
-    // GESAMTER FRAGENKATALOG (Hier kannst du beliebig viele Fragen aus deiner CSV ergänzen)
+    // GESAMTER FRAGENKATALOG
     const ALL_QUESTIONS = [
       { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen und schneller Antworten finden kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
       { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
@@ -179,9 +179,21 @@
       );
     };
 
-    const QuizScreen = ({ question, index, totalQuestions, onAnswer, timeLeft, showResults, userAnswer, isDoublePoints }) => {
+    const QuizScreen = ({ question, index, totalQuestions, onAnswer, timeLeft, showResults, userAnswer, isDoublePoints, myRank, myScore }) => {
       return (
         <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4 md:p-8 animate-in overflow-y-auto">
+          
+          <div className="flex justify-between items-center w-full mb-6 relative z-20">
+             <div className="glass-panel px-4 py-2 flex items-center gap-2 font-bold text-gray-700 shadow-sm border border-white/40">
+                <Trophy size={18} className="text-yellow-500" />
+                Platz {myRank}
+             </div>
+             <div className="glass-panel px-4 py-2 flex items-center gap-2 font-bold text-blue-700 shadow-sm border border-white/40">
+                {myScore} Pkt
+                <Star size={18} className="text-blue-500" />
+             </div>
+          </div>
+
           <TimerCircle seconds={timeLeft} />
           
           <div className="mb-4 flex justify-center">
@@ -304,7 +316,7 @@
     };
 
     const PodiumScreen = ({ leaderboard, score, name, user, onAdminReset }) => {
-      const top3 = [...leaderboard].sort((a,b) => b.score - a.score).slice(0, 3);
+      const top3 = leaderboard.slice(0, 3);
       return (
         <div className="flex-1 flex flex-col items-center justify-center p-4 animate-in w-full max-w-xl mx-auto pb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12 text-center">Top Ergebnisse</h1>
@@ -348,7 +360,7 @@
 
       const activeQuestions = gameState.activeQuestions || [];
       const currentQ = activeQuestions[gameState.currentQuestionIndex || 0];
-      const sortedUsers = [...users].sort((a,b) => b.score - a.score);
+      const sortedUsers = users; // is already sorted by displayScore
       const answersCount = users.filter(u => u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null).length;
       
       const isDoublePoints = gameState.doublePoints?.[gameState.currentQuestionIndex];
@@ -484,7 +496,7 @@
                       </span>
                       <span className="font-bold text-gray-800">{u.name}</span>
                     </div>
-                    <span className="font-bold text-blue-600">{u.score} <span className="text-[10px] text-gray-300">Pkt</span></span>
+                    <span className="font-bold text-blue-600">{u.displayScore} <span className="text-[10px] text-gray-300">Pkt</span></span>
                   </div>
                 ))}
                 {sortedUsers.length === 0 && (
@@ -572,13 +584,13 @@
 
       useEffect(() => {
         if (gameState.status === 'running' && !gameState.showResults) {
-          setTimeLeft(20);
+          setTimeLeft(30);
           
           const timeoutId = setTimeout(() => {
              if (userRef.current && !userRef.current.isAdmin && userAnswerRef.current === null) {
                 handleAnswer(-1);
              }
-          }, 20000);
+          }, 30000);
 
           const intervalId = setInterval(() => {
             setTimeLeft(prev => Math.max(0, prev - 1));
@@ -591,24 +603,24 @@
         }
       }, [gameState.status, gameState.currentQuestionIndex, gameState.showResults]);
 
+      // IMMER alle User laden für Live-Ranglisten bei allen Teilnehmern
       useEffect(() => {
         if (!userId || !activeRoom) return;
-        if (user?.isAdmin || step === 'podium' || step === 'admin') {
-          const q = query(collection(db, 'artifacts', activeRoom, 'users'));
-          const unsub = onSnapshot(q, snap => {
-            const list = [];
-            const currentSessionId = gameState.sessionId || 'default';
-            snap.forEach(d => {
-              const data = d.data();
-              if (data.sessionId === currentSessionId) {
-                list.push({ id: d.id, ...data });
-              }
-            });
-            setAllUsers(list);
-          }, (error) => console.error(error));
-          return () => unsub();
-        }
-      }, [userId, user?.isAdmin, step, gameState.sessionId, activeRoom]);
+        
+        const q = query(collection(db, 'artifacts', activeRoom, 'users'));
+        const unsub = onSnapshot(q, snap => {
+          const list = [];
+          const currentSessionId = gameState.sessionId || 'default';
+          snap.forEach(d => {
+            const data = d.data();
+            if (data.sessionId === currentSessionId) {
+              list.push({ id: d.id, ...data });
+            }
+          });
+          setAllUsers(list);
+        }, (error) => console.error(error));
+        return () => unsub();
+      }, [userId, activeRoom, gameState.sessionId]);
 
       const handleJoin = async (name, enteredRoomCode) => {
         if (!userId) return;
@@ -652,7 +664,6 @@
         
         setUserAnswer(idx); 
         
-        // Nutze die dynamisch gemischten Fragen
         const activeQuestions = gameState.activeQuestions || [];
         const isCorrect = idx >= 0 && activeQuestions[gameState.currentQuestionIndex].correct === idx;
         
@@ -675,13 +686,10 @@
         setStep('waiting'); 
       };
 
-      // HIER FINDET DER SHUFFLE STATT
       const adminStart = async (trainingType, count) => {
         if (!activeRoom) return;
         
-        // Mische den Gesamtkatalog
         let shuffled = [...ALL_QUESTIONS].sort(() => 0.5 - Math.random());
-        // Kürze auf die gewünschte Anzahl (falls count > Fragen, wird das Maximum genommen)
         shuffled = shuffled.slice(0, Math.min(count, ALL_QUESTIONS.length));
         
         const randomDoublePoints = Array.from({length: shuffled.length}, () => Math.random() < 0.3);
@@ -734,6 +742,29 @@
         await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { status: 'podium' }, { merge: true });
       };
 
+      // Punktestände berechnen, ABER verstecken bis zur Auflösung!
+      const activeQuestions = gameState.activeQuestions || [];
+      const currentQIndex = gameState.currentQuestionIndex || 0;
+      const currentQ = activeQuestions[currentQIndex];
+      const isDoublePoints = gameState.doublePoints?.[currentQIndex];
+      const reveal = gameState.showResults;
+
+      const displayUsers = allUsers.map(u => {
+          let displayScore = u.score || 0;
+          // Wenn das Spiel läuft, die Antwort noch nicht aufgelöst ist, und der User die aktuelle Frage schon beantwortet hat:
+          // Dann subtrahieren wir den eventuellen Punktegewinn von seinem Score ab, damit er das nicht vorher sieht!
+          if (gameState.status === 'running' && !reveal && u.answers && u.answers[currentQIndex] !== undefined) {
+              if (currentQ && u.answers[currentQIndex] === currentQ.correct) {
+                  displayScore -= (isDoublePoints ? 20 : 10);
+              }
+          }
+          return { ...u, displayScore };
+      }).sort((a, b) => b.displayScore - a.displayScore);
+
+      const myIndex = displayUsers.findIndex(u => u.id === userId);
+      const myRank = myIndex >= 0 ? myIndex + 1 : '-';
+      const myScore = myIndex >= 0 ? displayUsers[myIndex].displayScore : 0;
+
       let content = null;
 
       if (!user) {
@@ -741,7 +772,7 @@
       }
       else if (step === 'podium') {
         content = <PodiumScreen 
-            leaderboard={allUsers} 
+            leaderboard={displayUsers} 
             score={allUsers.find(u => u.id === userId)?.score || 0} 
             name={user.name} 
             user={user} 
@@ -751,7 +782,7 @@
       else if (step === 'admin' || user.isAdmin) {
         content = (
           <div className="flex-1 flex flex-col relative">
-            <AdminDashboard gameState={gameState} users={allUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} timeLeft={timeLeft} roomCode={roomCodeUI} />
+            <AdminDashboard gameState={gameState} users={displayUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} timeLeft={timeLeft} roomCode={roomCodeUI} />
             {gameState.status === 'feedback' && (
                <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
                   <button onClick={adminToPodium} className="px-12 py-5 bg-yellow-500 text-white rounded-2xl font-bold shadow-2xl hover:bg-yellow-600 active:scale-95 transition-all text-xl whitespace-nowrap">Siegerpodest anzeigen</button>
@@ -782,6 +813,8 @@
             showResults={gameState.showResults} 
             userAnswer={userAnswer}
             isDoublePoints={gameState.doublePoints?.[gameState.currentQuestionIndex]} 
+            myRank={myRank}
+            myScore={myScore}
           />;
       } else if (step === 'feedback') {
         content = <FeedbackScreen onFinish={handleFinishFeedback} />;
