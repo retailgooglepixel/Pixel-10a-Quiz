@@ -95,7 +95,7 @@
     const db = getFirestore(app);
     const BASE_APP_ID = 'pixel-10a-live-training';
 
-    // FEHLERFREIE 15 FRAGEN (Pixel 10a)
+    // FEHLERFREIE 10 FRAGEN (Pixel 10a)
     const QUESTIONS = [
       { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen und schneller Antworten finden kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
       { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
@@ -106,12 +106,7 @@
       { q: "Welche Funktion hilft dabei, verschwommene oder alte, unscharfe Fotos im Nachhinein zu retten?", options: ["Scharfzeichnen (Photo Unblur)", "Magischer Editor", "Super-Resolution-Zoom", "Astromodus"], correct: 0 },
       { q: "Welcher Prozessor treibt das Google Pixel 10a an und ermöglicht die schnellen KI-Funktionen?", options: ["Snapdragon 8 Gen 3", "Google Tensor G4", "Exynos 2400", "A16 Bionic"], correct: 1 },
       { q: "Wie schützt das Pixel 10a die Daten der Nutzer auf Hardware-Ebene?", options: ["Google Shield Protect", "Titan M2-Sicherheitschip", "Externe verschlüsselte SD-Karte", "Nox Secure"], correct: 1 },
-      { q: "Welche KI-Funktion hilft am besten im Ausland, um ein Straßenschild oder eine Speisekarte zu verstehen?", options: ["Google Maps", "Live-Übersetzung", "Circle to Search", "Pixel Screenshots"], correct: 1 },
-      { q: "Was macht die 'Pixel Screenshots'-App auf dem Pixel 10a so besonders?", options: ["Sie speichert Screenshots in der Cloud", "Sie macht alle 10 Minuten einen Screenshot", "Sie nutzt KI, um Inhalte von Screenshots durchsuchbar zu machen", "Sie teilt Screenshots sofort auf Social Media"], correct: 2 },
-      { q: "Wie hilft das Pixel 10a Nutzern, die nachts oder bei schlechtem Licht fotografieren möchten?", options: ["Mit dem integrierten LED-Ringblitz", "Mit der Funktion 'Nachtsicht' (Night Sight)", "Durch automatische Aufhellung", "Mit dem Makrofokus"], correct: 1 },
-      { q: "Was passiert, wenn ein Nutzer auf dem Pixel 10a einen unerwünschten Spam-Anruf erhält?", options: ["Der Anruf-Filter kann Spam prüfen und blockieren", "Das Smartphone schaltet sich stumm", "Der Anrufer wird blockiert, aber die Mailbox wird voll", "Man benötigt eine Drittanbieter-App"], correct: 0 },
-      { q: "Ein Kunde möchte störende Personen aus dem Hintergrund eines Urlaubsfotos entfernen. Welches Tool nutzt er?", options: ["Scharfzeichnen", "Beste Aufnahme", "Magischer Editor", "Action-Pan"], correct: 2 },
-      { q: "Wie optimiert das Pixel 10a seine Akkulaufzeit im Alltag?", options: ["Es schaltet das Display sofort ab", "Es beendet alle Hintergrund-Apps", "Mit dem 'Intelligenten Akku', der die App-Nutzung lernt", "Es drosselt dauerhaft die Leistung"], correct: 2 }
+      { q: "Welche KI-Funktion hilft am besten im Ausland, um ein Straßenschild oder eine Speisekarte zu verstehen?", options: ["Google Maps", "Live-Übersetzung", "Circle to Search", "Pixel Screenshots"], correct: 1 }
     ];
 
     const TimerCircle = ({ seconds }) => (
@@ -173,7 +168,7 @@
           
           <div className="mb-4 flex justify-center">
             <span className="bg-blue-50 text-blue-700 px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">
-              Frage {index + 1} von 15
+              Frage {index + 1} von 10
             </span>
           </div>
           
@@ -371,7 +366,7 @@
 
                   <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="bg-blue-100 text-blue-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / 15</span>
+                      <span className="bg-blue-100 text-blue-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / 10</span>
                       <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${timeLeft === 0 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-gray-100 text-gray-700'}`}>
                         <Clock size={14} /> {timeLeft} Sek
                       </span>
@@ -401,7 +396,7 @@
                       <button onClick={onReveal} className="flex-1 py-5 bg-blue-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"><Eye size={24}/> Antwort auflösen</button>
                     ) : (
                       <button onClick={onNextQuestion} className="flex-1 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
-                        {gameState.currentQuestionIndex < 14 ? 'Nächste Frage' : 'Feedback einholen'} <ChevronRight size={24}/>
+                        {gameState.currentQuestionIndex < 9 ? 'Nächste Frage' : 'Feedback einholen'} <ChevronRight size={24}/>
                       </button>
                     )}
                   </div>
@@ -524,13 +519,13 @@
 
       useEffect(() => {
         if (gameState.status === 'running' && !gameState.showResults) {
-          setTimeLeft(15);
+          setTimeLeft(20);
           
           const timeoutId = setTimeout(() => {
              if (userRef.current && !userRef.current.isAdmin && userAnswerRef.current === null) {
                 handleAnswer(-1);
              }
-          }, 15000);
+          }, 20000);
 
           const intervalId = setInterval(() => {
             setTimeLeft(prev => Math.max(0, prev - 1));
@@ -643,7 +638,7 @@
       const adminNext = async () => {
         if (!activeRoom) return;
         const nextIndex = (gameState.currentQuestionIndex || 0) + 1;
-        if (nextIndex < 15) {
+        if (nextIndex < 10) {
           const updatePromises = allUsers.map(u => updateDoc(doc(db, 'artifacts', activeRoom, 'users', u.id), { lastAnswerIndex: null }));
           await Promise.all(updatePromises);
           
