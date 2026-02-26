@@ -354,13 +354,14 @@
     };
 
     const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft, roomCode }) => {
-      // Local state for dropdowns
+      // Local state for dropdowns auf der ADMIN Seite
       const [tType, setTType] = useState('Vor Ort');
       const [qCount, setQCount] = useState(10);
+      const [partner, setPartner] = useState('Vodafone'); // Partner State
 
       const activeQuestions = gameState.activeQuestions || [];
       const currentQ = activeQuestions[gameState.currentQuestionIndex || 0];
-      const sortedUsers = users; // is already sorted by displayScore
+      const sortedUsers = users; 
       const answersCount = users.filter(u => u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null).length;
       
       const isDoublePoints = gameState.doublePoints?.[gameState.currentQuestionIndex];
@@ -371,11 +372,14 @@
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Live Session Control</h1>
-              <p className="text-gray-500 mt-1 flex items-center gap-3">
+              <p className="text-gray-500 mt-1 flex flex-wrap items-center gap-3">
                 Google Pixel 10a Live Session 
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><KeyRound size={12}/> RAUM: {roomCode}</span>
                 {gameState.status === 'running' && (
-                  <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1">{gameState.trainingType}</span>
+                  <>
+                    <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-lg text-xs font-bold">{gameState.trainingType}</span>
+                    <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-lg text-xs font-bold">{gameState.partner}</span>
+                  </>
                 )}
               </p>
             </div>
@@ -450,10 +454,21 @@
                    <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Bereit für den Start?</h2>
                    <p className="text-gray-500 text-center mb-8">Sag den Teilnehmern, sie sollen den Raum-Code <strong className="text-blue-600">{roomCode}</strong> eingeben.</p>
                    
+                   {/* DIESER BEREICH WIRD NUR VOM ADMIN GESEHEN */}
                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
                       <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><Shuffle size={18}/> Trainings-Einstellungen</h3>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Partner</label>
+                           <select value={partner} onChange={e => setPartner(e.target.value)} className="w-full p-4 rounded-xl border border-gray-300 bg-white font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                              <option value="Vodafone">Vodafone</option>
+                              <option value="Telefonica">Telefonica</option>
+                              <option value="Telekom">Telekom</option>
+                              <option value="freenet">freenet</option>
+                              <option value="other">other</option>
+                           </select>
+                        </div>
                         <div>
                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Trainingsart</label>
                            <select value={tType} onChange={e => setTType(e.target.value)} className="w-full p-4 rounded-xl border border-gray-300 bg-white font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -462,7 +477,7 @@
                            </select>
                         </div>
                         <div>
-                           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Anzahl der Fragen</label>
+                           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Fragen</label>
                            <select value={qCount} onChange={e => setQCount(Number(e.target.value))} className="w-full p-4 rounded-xl border border-gray-300 bg-white font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                               <option value={5}>5 Fragen</option>
                               <option value={10}>10 Fragen</option>
@@ -475,7 +490,8 @@
                         </div>
                       </div>
                       
-                      <button onClick={() => onStart(tType, qCount)} className="w-full py-5 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-green-100 hover:bg-green-600 active:scale-95 transition-all text-lg">
+                      {/* Button überträgt die gewählten Dropdown-Werte (inkl. Partner) in die Datenbank */}
+                      <button onClick={() => onStart(tType, qCount, partner)} className="w-full py-5 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-green-100 hover:bg-green-600 active:scale-95 transition-all text-lg">
                         <Shuffle size={24}/> Fragen mischen & Quiz starten
                       </button>
                    </div>
@@ -686,13 +702,14 @@
         setStep('waiting'); 
       };
 
-      const adminStart = async (trainingType, count) => {
+      const adminStart = async (trainingType, count, partner) => {
         if (!activeRoom) return;
         
         let shuffled = [...ALL_QUESTIONS].sort(() => 0.5 - Math.random());
         shuffled = shuffled.slice(0, Math.min(count, ALL_QUESTIONS.length));
         
         const randomDoublePoints = Array.from({length: shuffled.length}, () => Math.random() < 0.3);
+        const currentDate = new Date().toLocaleDateString('de-DE'); // Datum speichern
         
         await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { 
           status: 'running', 
@@ -700,7 +717,9 @@
           showResults: false,
           doublePoints: randomDoublePoints,
           activeQuestions: shuffled,
-          trainingType: trainingType
+          trainingType: trainingType,
+          partner: partner,
+          date: currentDate
         }, { merge: true });
       };
 
