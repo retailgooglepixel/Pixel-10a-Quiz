@@ -12,16 +12,41 @@
     body {
       font-family: 'Google Sans', sans-serif;
       overscroll-behavior-y: none;
-      background: #f1f3f4;
-      color: #3c4043;
+      color: #202124;
     }
     
+    /* Fixed Background Layers for transparent image effect */
+    .bg-base {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f8f9fa;
+      z-index: -2;
+    }
+    
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('https://i.postimg.cc/mgbBY4JZ/Bildschirmfoto_2026_02_16_um_15_31_19.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.35; /* Transparenz des Bildes */
+      z-index: -1;
+    }
+    
+    /* Enhanced Glass Panel */
     .glass-panel {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
       border-radius: 2rem;
     }
 
@@ -63,9 +88,12 @@
   </script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col relative">
+  <!-- Background Layers -->
+  <div class="bg-base"></div>
+  <div class="bg-overlay"></div>
 
-  <div id="root" class="flex-1 flex flex-col"></div>
+  <div id="root" class="flex-1 flex flex-col relative z-10"></div>
 
   <script type="text/babel" data-type="module">
     import React, { useState, useEffect, useRef } from 'react';
@@ -103,7 +131,7 @@
       { bg: 'bg-[#34A853]', text: 'text-white', border: 'border-[#34A853]' }
     ];
 
-    // GESAMTER FRAGENKATALOG
+    // GESAMTER FRAGENKATALOG (Wird vom Admin dynamisch gemischt)
     const ALL_QUESTIONS = [
       { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen und schneller Antworten finden kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
       { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
@@ -129,7 +157,7 @@
 
     const TimerCircle = ({ seconds }) => (
       <div className="flex justify-center mb-6">
-        <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-white border-4 flex flex-col items-center justify-center shadow-2xl relative z-10 transition-colors ${seconds === 0 ? 'border-red-500 text-red-500' : 'border-blue-500 text-blue-500 pulse-timer'}`}>
+        <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/80 backdrop-blur-md border-4 flex flex-col items-center justify-center shadow-2xl relative z-10 transition-colors ${seconds === 0 ? 'border-red-500 text-red-500' : 'border-blue-500 text-blue-500 pulse-timer'}`}>
           <Timer size={20} className="mb-1" />
           <span className={`text-3xl md:text-4xl font-bold ${seconds === 0 ? 'text-red-600' : 'text-gray-800'}`}>
             {seconds}
@@ -144,7 +172,7 @@
       return (
         <div className="flex-1 flex items-center justify-center p-4 animate-in">
           <div className="glass-panel w-full max-w-md p-10 text-center shadow-2xl">
-            <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl text-white">
+            <div className="w-20 h-20 bg-blue-600/90 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl text-white">
               <Smartphone size={40} />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Google Pixel 10a</h1>
@@ -154,7 +182,7 @@
                 type="text" 
                 value={room}
                 onChange={(e) => setRoom(e.target.value.toUpperCase())}
-                className="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:outline-none bg-white text-lg transition-all text-center uppercase tracking-widest font-bold text-blue-800 placeholder:text-gray-400 placeholder:font-normal"
+                className="w-full px-6 py-4 rounded-2xl border border-white/60 focus:border-blue-500 focus:outline-none bg-white/70 backdrop-blur-md text-lg transition-all text-center uppercase tracking-widest font-bold text-blue-800 placeholder:text-gray-500 placeholder:font-normal shadow-inner"
                 placeholder="Raum-Code (z.B. HAMBURG)"
                 required
               />
@@ -162,14 +190,14 @@
                 type="text" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:outline-none bg-white text-lg transition-all text-center"
+                className="w-full px-6 py-4 rounded-2xl border border-white/60 focus:border-blue-500 focus:outline-none bg-white/70 backdrop-blur-md text-lg transition-all text-center shadow-inner"
                 placeholder="Dein Vor- und Nachname"
                 required
               />
               <button 
                 type="submit"
                 disabled={!name.trim() || !room.trim()}
-                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 mt-4"
+                className="w-full py-5 bg-blue-600/90 backdrop-blur-sm text-white rounded-2xl font-bold text-lg shadow-xl hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 mt-4"
               >
                 Teilnehmen
               </button>
@@ -184,11 +212,11 @@
         <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4 md:p-8 animate-in overflow-y-auto">
           
           <div className="flex justify-between items-center w-full mb-6 relative z-20">
-             <div className="glass-panel px-4 py-2 flex items-center gap-2 font-bold text-gray-700 shadow-sm border border-white/40">
+             <div className="glass-panel px-4 py-2 flex items-center gap-2 font-bold text-gray-800 shadow-sm border border-white/60">
                 <Trophy size={18} className="text-yellow-500" />
                 Platz {myRank}
              </div>
-             <div className="glass-panel px-4 py-2 flex items-center gap-2 font-bold text-blue-700 shadow-sm border border-white/40">
+             <div className="glass-panel px-4 py-2 flex items-center gap-2 font-bold text-blue-700 shadow-sm border border-white/60">
                 {myScore} Pkt
                 <Star size={18} className="text-blue-500" />
              </div>
@@ -197,7 +225,7 @@
           <TimerCircle seconds={timeLeft} />
           
           <div className="mb-4 flex justify-center">
-            <span className="bg-blue-50 text-blue-700 px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">
+            <span className="glass-panel px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-blue-800">
               Frage {index + 1} von {totalQuestions}
             </span>
           </div>
@@ -209,7 +237,7 @@
                 2x PUNKTE
               </div>
             )}
-            <h2 className="text-xl md:text-3xl font-bold text-gray-900 leading-tight">{question.q}</h2>
+            <h2 className="text-xl md:text-3xl font-bold text-gray-900 leading-tight drop-shadow-sm">{question.q}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -224,16 +252,16 @@
                 if (isCorrect) {
                   styleClass += " scale-105 shadow-2xl ring-4 ring-offset-2 ring-green-400";
                 } else {
-                  styleClass += " opacity-30 grayscale";
+                  styleClass += " opacity-40 grayscale";
                 }
               } else if (userAnswer !== null) {
                 if (isSelected) {
-                  styleClass += " ring-4 ring-offset-2 ring-gray-400 scale-105";
+                  styleClass += " ring-4 ring-offset-2 ring-white/60 scale-105 shadow-xl";
                 } else {
-                  styleClass += " opacity-50";
+                  styleClass += " opacity-60 backdrop-blur-md";
                 }
               } else {
-                 styleClass += " hover:brightness-110 hover:-translate-y-1";
+                 styleClass += " hover:brightness-110 hover:-translate-y-1 shadow-lg";
               }
 
               return (
@@ -241,9 +269,9 @@
                   key={i}
                   disabled={showResults || userAnswer !== null}
                   onClick={() => onAnswer(i)}
-                  className={`w-full p-5 md:p-6 text-left rounded-2xl shadow-md border-2 transition-all duration-300 font-bold flex justify-between items-center group ${styleClass}`}
+                  className={`w-full p-5 md:p-6 text-left rounded-2xl transition-all duration-300 font-bold flex justify-between items-center group ${styleClass}`}
                 >
-                  <span className="text-lg">{opt}</span>
+                  <span className="text-lg drop-shadow-sm">{opt}</span>
                   {showResults && isCorrect && <CheckCircle2 className={colors.text} size={28} />}
                 </button>
               );
@@ -251,8 +279,8 @@
           </div>
           
           {userAnswer !== null && !showResults && (
-            <div className={`mt-8 p-6 rounded-2xl border flex items-center justify-center gap-4 ${userAnswer === -1 ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200 animate-pulse'}`}>
-              <span className={userAnswer === -1 ? "text-red-500" : "text-blue-500"}><Info size={24} /></span>
+            <div className={`mt-8 p-6 rounded-2xl border backdrop-blur-md flex items-center justify-center gap-4 ${userAnswer === -1 ? 'bg-red-50/80 border-red-200' : 'bg-blue-50/80 border-blue-200 animate-pulse shadow-sm'}`}>
+              <span className={userAnswer === -1 ? "text-red-500" : "text-blue-600"}><Info size={24} /></span>
               <p className={userAnswer === -1 ? "text-red-700 font-bold text-center" : "text-blue-800 font-bold text-center"}>
                 {userAnswer === -1 ? "Zeit abgelaufen! Keine Antwort gewertet." : "Antwort eingeloggt. Warte auf die Auflösung durch den Trainer..."}
               </p>
@@ -260,7 +288,7 @@
           )}
 
           {showResults && (
-            <div className={`mt-8 p-6 rounded-2xl border flex items-center justify-center gap-4 animate-in ${userAnswer === question.correct ? 'bg-green-100 border-green-300 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+            <div className={`mt-8 p-6 rounded-2xl border backdrop-blur-md flex items-center justify-center gap-4 animate-in shadow-md ${userAnswer === question.correct ? 'bg-green-100/90 border-green-300 text-green-800' : 'bg-red-50/90 border-red-200 text-red-800'}`}>
               <h3 className="font-bold text-xl text-center">
                 {userAnswer === question.correct 
                   ? (isDoublePoints ? "🎉 Richtig! +20 Punkte!" : "🎉 Richtig! +10 Punkte!") 
@@ -280,23 +308,23 @@
           <div className="glass-panel w-full max-w-md p-10 text-center shadow-2xl">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">Dein Feedback</h2>
             <div className="mb-8">
-              <p className="text-gray-500 mb-4 font-bold uppercase text-[10px] tracking-widest">Wie bewertest du das Training?</p>
+              <p className="text-gray-600 mb-4 font-bold uppercase text-[10px] tracking-widest">Wie bewertest du das Training?</p>
               <div className="flex justify-center gap-4">
                 {[1,2,3,4,5].map(s => (
                   <button key={s} onClick={() => setR1(s)} className="transform transition-transform hover:scale-120">
-                    <Star size={36} fill={r1 >= s ? "#fbbc05" : "none"} color={r1 >= s ? "#fbbc05" : "#dadce0"} />
+                    <Star size={36} fill={r1 >= s ? "#fbbc05" : "none"} color={r1 >= s ? "#fbbc05" : "#a1a1aa"} />
                   </button>
                 ))}
               </div>
             </div>
             <div className="mb-12">
-              <p className="text-gray-500 mb-6 font-bold uppercase text-[10px] tracking-widest">Empfehlung an Kunden?</p>
+              <p className="text-gray-600 mb-6 font-bold uppercase text-[10px] tracking-widest">Empfehlung an Kunden?</p>
               <div className="flex justify-center gap-3">
                 {[1,2,3,4,5].map(v => (
                   <button 
                     key={v} 
                     onClick={() => setR2(v)} 
-                    className={`w-12 h-12 rounded-2xl font-bold transition-all ${r2 === v ? 'bg-blue-600 text-white shadow-xl' : 'bg-gray-100 text-gray-400'}`}
+                    className={`w-12 h-12 rounded-2xl font-bold transition-all shadow-sm ${r2 === v ? 'bg-blue-600/90 backdrop-blur-md text-white scale-110' : 'bg-white/60 text-gray-500 hover:bg-white/80'}`}
                   >
                     {v}
                   </button>
@@ -306,7 +334,7 @@
             <button 
               onClick={() => onFinish(r1, r2)} 
               disabled={!r1 || !r2} 
-              className="w-full py-5 bg-green-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-green-100 disabled:opacity-50"
+              className="w-full py-5 bg-green-500/90 backdrop-blur-md text-white rounded-2xl font-bold text-lg shadow-xl hover:bg-green-600 active:scale-95 transition-all disabled:opacity-50"
             >
               Absenden & Zum Podium
             </button>
@@ -319,34 +347,40 @@
       const top3 = leaderboard.slice(0, 3);
       return (
         <div className="flex-1 flex flex-col items-center justify-center p-4 animate-in w-full max-w-xl mx-auto pb-10">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12 text-center">Top Ergebnisse</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12 text-center drop-shadow-sm">Top Ergebnisse</h1>
           <div className="flex items-end justify-center gap-3 md:gap-6 mb-12 w-full px-4 h-64">
             <div className="flex flex-col items-center flex-1">
-              <p className="text-xs font-bold text-gray-500 truncate w-full text-center mb-2">{top3[1]?.name || '-'}</p>
-              <div className="podium-2 w-full flex items-center justify-center shadow-lg"><span className="text-3xl font-bold text-white">2</span></div>
+              <div className="glass-panel px-3 py-1 mb-2 text-center">
+                 <p className="text-xs font-bold text-gray-800 truncate w-full">{top3[1]?.name || '-'}</p>
+              </div>
+              <div className="podium-2 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-3xl font-bold text-white drop-shadow-md">2</span></div>
             </div>
             <div className="flex flex-col items-center flex-1">
-              <span className="text-yellow-500 mb-4 animate-bounce"><Trophy size={56} /></span>
-              <p className="text-sm font-bold text-gray-800 truncate w-full text-center mb-2">{top3[0]?.name || '-'}</p>
-              <div className="podium-1 w-full flex items-center justify-center shadow-2xl"><span className="text-5xl font-bold text-white">1</span></div>
+              <span className="text-yellow-500 mb-4 animate-bounce drop-shadow-lg"><Trophy size={64} /></span>
+              <div className="glass-panel px-4 py-1.5 mb-2 text-center border-yellow-400/50">
+                 <p className="text-sm font-bold text-gray-900 truncate w-full">{top3[0]?.name || '-'}</p>
+              </div>
+              <div className="podium-1 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-5xl font-bold text-white drop-shadow-md">1</span></div>
             </div>
             <div className="flex flex-col items-center flex-1">
-              <p className="text-xs font-bold text-gray-500 truncate w-full text-center mb-2">{top3[2]?.name || '-'}</p>
-              <div className="podium-3 w-full flex items-center justify-center shadow-lg"><span className="text-2xl font-bold text-white">3</span></div>
+              <div className="glass-panel px-3 py-1 mb-2 text-center">
+                 <p className="text-xs font-bold text-gray-800 truncate w-full">{top3[2]?.name || '-'}</p>
+              </div>
+              <div className="podium-3 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-2xl font-bold text-white drop-shadow-md">3</span></div>
             </div>
           </div>
           
           {user?.isAdmin ? (
             <div className="mt-8 text-center relative z-20">
-              <button onClick={onAdminReset} className="px-10 py-4 bg-gray-800 text-white rounded-2xl font-bold hover:bg-gray-700 active:scale-95 transition-all shadow-xl cursor-pointer pointer-events-auto">
+              <button onClick={onAdminReset} className="px-10 py-4 bg-gray-800/90 backdrop-blur-md text-white rounded-2xl font-bold hover:bg-gray-900 active:scale-95 transition-all shadow-xl cursor-pointer pointer-events-auto">
                 Neues Training starten (Reset)
               </button>
             </div>
           ) : (
             <div className="glass-panel w-full p-8 text-center shadow-xl">
-              <p className="text-gray-400 font-bold uppercase text-[10px] mb-2 tracking-widest">Deine Leistung</p>
-              <p className="text-5xl font-bold text-blue-600 mb-2">{score} <span className="text-sm text-gray-300">Pkt</span></p>
-              <p className="text-gray-600 mt-4 font-medium">{name}, danke für deine Teilnahme!</p>
+              <p className="text-gray-500 font-bold uppercase text-[10px] mb-2 tracking-widest">Deine Leistung</p>
+              <p className="text-5xl font-bold text-blue-600 mb-2 drop-shadow-sm">{score} <span className="text-sm text-gray-400">Pkt</span></p>
+              <p className="text-gray-700 mt-4 font-medium">{name}, danke für deine Teilnahme!</p>
             </div>
           )}
         </div>
@@ -354,10 +388,9 @@
     };
 
     const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft, roomCode }) => {
-      // Local state for dropdowns auf der ADMIN Seite
       const [tType, setTType] = useState('Vor Ort');
       const [qCount, setQCount] = useState(10);
-      const [partner, setPartner] = useState('Vodafone'); // Partner State
+      const [partner, setPartner] = useState('Vodafone');
 
       const activeQuestions = gameState.activeQuestions || [];
       const currentQ = activeQuestions[gameState.currentQuestionIndex || 0];
@@ -371,21 +404,21 @@
         <div className="flex-1 p-4 md:p-12 max-w-6xl mx-auto w-full overflow-y-auto">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">Live Session Control</h1>
-              <p className="text-gray-500 mt-1 flex flex-wrap items-center gap-3">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2 drop-shadow-sm">Live Session Control</h1>
+              <p className="text-gray-600 mt-2 flex flex-wrap items-center gap-3">
                 Google Pixel 10a Live Session 
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><KeyRound size={12}/> RAUM: {roomCode}</span>
+                <span className="glass-panel border-blue-200 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 text-blue-800"><KeyRound size={12}/> RAUM: {roomCode}</span>
                 {gameState.status === 'running' && (
                   <>
-                    <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-lg text-xs font-bold">{gameState.trainingType}</span>
-                    <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-lg text-xs font-bold">{gameState.partner}</span>
+                    <span className="glass-panel border-purple-200 px-3 py-1 rounded-lg text-xs font-bold text-purple-800">{gameState.trainingType}</span>
+                    <span className="glass-panel border-orange-200 px-3 py-1 rounded-lg text-xs font-bold text-orange-800">{gameState.partner}</span>
                   </>
                 )}
               </p>
             </div>
             <div className="flex gap-4">
               {gameState.status !== 'waiting' && (
-                <button onClick={onReset} className="p-4 bg-white border border-gray-200 rounded-2xl text-gray-500 hover:bg-gray-100 transition-all shadow-sm" title="Reset Session"><RefreshCcw size={20}/></button>
+                <button onClick={onReset} className="p-4 glass-panel text-gray-600 hover:bg-white/80 transition-all shadow-md" title="Reset Session"><RefreshCcw size={20}/></button>
               )}
             </div>
           </div>
@@ -403,18 +436,18 @@
 
                   <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="bg-blue-100 text-blue-700 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / {activeQuestions.length}</span>
-                      <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${timeLeft === 0 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-gray-100 text-gray-700'}`}>
+                      <span className="glass-panel border-blue-200 text-blue-800 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / {activeQuestions.length}</span>
+                      <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${timeLeft === 0 ? 'bg-red-100/90 text-red-700 animate-pulse' : 'glass-panel text-gray-700'}`}>
                         <Clock size={14} /> {timeLeft} Sek
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-500 font-bold bg-white/50 px-4 py-2 rounded-full border border-gray-100">
+                    <div className="flex items-center gap-2 text-gray-700 font-bold glass-panel px-4 py-2 rounded-full">
                       <User size={18} /> 
                       <span>{answersCount} / {users.length} Antworten</span>
                     </div>
                   </div>
                   
-                  <h2 className="text-2xl md:text-4xl font-bold mb-10 text-gray-900 leading-tight">{currentQ.q}</h2>
+                  <h2 className="text-2xl md:text-4xl font-bold mb-10 text-gray-900 leading-tight drop-shadow-sm">{currentQ.q}</h2>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
                     {currentQ.options.map((opt, i) => {
@@ -423,13 +456,13 @@
                       let styleClass = `${colors.bg} ${colors.text}`;
 
                       if (reveal) {
-                         if (isCorrect) styleClass += " scale-105 shadow-xl ring-4 ring-offset-2 ring-green-400";
-                         else styleClass += " opacity-30 grayscale";
+                         if (isCorrect) styleClass += " scale-105 shadow-2xl ring-4 ring-offset-2 ring-green-400";
+                         else styleClass += " opacity-40 grayscale";
                       }
 
                       return (
-                        <div key={i} className={`p-6 rounded-2xl shadow-sm transition-all duration-300 flex justify-between items-center text-lg font-bold ${styleClass}`}>
-                          <span>{opt}</span>
+                        <div key={i} className={`p-6 rounded-2xl shadow-md transition-all duration-300 flex justify-between items-center text-lg font-bold ${styleClass}`}>
+                          <span className="drop-shadow-sm">{opt}</span>
                           {reveal && isCorrect && <CheckCircle2 size={28} />}
                         </div>
                       );
@@ -438,30 +471,29 @@
 
                   <div className="flex flex-col sm:flex-row gap-4">
                     {!reveal ? (
-                      <button onClick={onReveal} className="flex-1 py-5 bg-blue-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"><Eye size={24}/> Antwort auflösen</button>
+                      <button onClick={onReveal} className="flex-1 py-5 bg-blue-600/90 backdrop-blur-md text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl hover:bg-blue-700 transition-all"><Eye size={24}/> Antwort auflösen</button>
                     ) : (
-                      <button onClick={onNextQuestion} className="flex-1 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
+                      <button onClick={onNextQuestion} className="flex-1 py-5 bg-indigo-600/90 backdrop-blur-md text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl hover:bg-indigo-700 transition-all">
                         {gameState.currentQuestionIndex < activeQuestions.length - 1 ? 'Nächste Frage' : 'Feedback einholen'} <ChevronRight size={24}/>
                       </button>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="glass-panel p-10 animate-in shadow-sm">
-                   <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="glass-panel p-10 animate-in shadow-xl">
+                   <div className="w-20 h-20 bg-blue-100/80 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                       <Users size={40} />
                    </div>
-                   <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Bereit für den Start?</h2>
-                   <p className="text-gray-500 text-center mb-8">Sag den Teilnehmern, sie sollen den Raum-Code <strong className="text-blue-600">{roomCode}</strong> eingeben.</p>
+                   <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center drop-shadow-sm">Bereit für den Start?</h2>
+                   <p className="text-gray-600 text-center mb-8">Sag den Teilnehmern, sie sollen den Raum-Code <strong className="text-blue-700">{roomCode}</strong> eingeben.</p>
                    
-                   {/* DIESER BEREICH WIRD NUR VOM ADMIN GESEHEN */}
-                   <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
-                      <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><Shuffle size={18}/> Trainings-Einstellungen</h3>
+                   <div className="bg-white/40 backdrop-blur-sm p-6 rounded-2xl border border-white/60 shadow-sm">
+                      <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Shuffle size={18}/> Trainings-Einstellungen</h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
-                           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Partner</label>
-                           <select value={partner} onChange={e => setPartner(e.target.value)} className="w-full p-4 rounded-xl border border-gray-300 bg-white font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           <label className="block text-xs font-bold text-gray-600 uppercase mb-2 drop-shadow-sm">Partner</label>
+                           <select value={partner} onChange={e => setPartner(e.target.value)} className="w-full p-4 rounded-xl border border-white/80 bg-white/60 backdrop-blur-md font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                               <option value="Vodafone">Vodafone</option>
                               <option value="Telefonica">Telefonica</option>
                               <option value="Telekom">Telekom</option>
@@ -470,15 +502,15 @@
                            </select>
                         </div>
                         <div>
-                           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Trainingsart</label>
-                           <select value={tType} onChange={e => setTType(e.target.value)} className="w-full p-4 rounded-xl border border-gray-300 bg-white font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           <label className="block text-xs font-bold text-gray-600 uppercase mb-2 drop-shadow-sm">Trainingsart</label>
+                           <select value={tType} onChange={e => setTType(e.target.value)} className="w-full p-4 rounded-xl border border-white/80 bg-white/60 backdrop-blur-md font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                               <option value="Vor Ort">Vor Ort</option>
                               <option value="Digital">Digital</option>
                            </select>
                         </div>
                         <div>
-                           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Fragen</label>
-                           <select value={qCount} onChange={e => setQCount(Number(e.target.value))} className="w-full p-4 rounded-xl border border-gray-300 bg-white font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           <label className="block text-xs font-bold text-gray-600 uppercase mb-2 drop-shadow-sm">Fragen</label>
+                           <select value={qCount} onChange={e => setQCount(Number(e.target.value))} className="w-full p-4 rounded-xl border border-white/80 bg-white/60 backdrop-blur-md font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                               <option value={5}>5 Fragen</option>
                               <option value={10}>10 Fragen</option>
                               <option value={15}>15 Fragen</option>
@@ -490,8 +522,7 @@
                         </div>
                       </div>
                       
-                      {/* Button überträgt die gewählten Dropdown-Werte (inkl. Partner) in die Datenbank */}
-                      <button onClick={() => onStart(tType, qCount, partner)} className="w-full py-5 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-green-100 hover:bg-green-600 active:scale-95 transition-all text-lg">
+                      <button onClick={() => onStart(tType, qCount, partner)} className="w-full py-5 bg-green-500/90 backdrop-blur-md text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl hover:bg-green-600 active:scale-95 transition-all text-lg">
                         <Shuffle size={24}/> Fragen mischen & Quiz starten
                       </button>
                    </div>
@@ -499,25 +530,25 @@
               )}
             </div>
 
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-gray-100 h-fit">
-              <h3 className="font-bold text-gray-400 uppercase text-xs mb-6 tracking-widest border-b pb-4">
+            <div className="glass-panel p-8 h-fit">
+              <h3 className="font-bold text-gray-500 uppercase text-xs mb-6 tracking-widest border-b border-gray-200/50 pb-4 drop-shadow-sm">
                 {gameState.status === 'running' ? 'Live Rangliste' : 'Lobby - Teilnehmer'}
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {sortedUsers.map((u, i) => (
-                  <div key={u.id} className="flex justify-between items-center p-4 hover:bg-gray-50 rounded-2xl transition-all border border-transparent hover:border-gray-100">
+                  <div key={u.id} className="flex justify-between items-center p-4 bg-white/40 hover:bg-white/60 rounded-2xl transition-all border border-white/50 shadow-sm">
                     <div className="flex items-center gap-4">
-                      <span className={`font-bold w-6 h-6 flex items-center justify-center rounded-full text-xs ${i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-400'}`}>
+                      <span className={`font-bold w-7 h-7 flex items-center justify-center rounded-full text-xs shadow-sm ${i === 0 ? 'bg-yellow-200 text-yellow-800' : 'bg-white/80 text-gray-600'}`}>
                         {i+1}
                       </span>
-                      <span className="font-bold text-gray-800">{u.name}</span>
+                      <span className="font-bold text-gray-800 drop-shadow-sm">{u.name}</span>
                     </div>
-                    <span className="font-bold text-blue-600">{u.displayScore} <span className="text-[10px] text-gray-300">Pkt</span></span>
+                    <span className="font-bold text-blue-700 drop-shadow-sm">{u.displayScore} <span className="text-[10px] text-gray-500">Pkt</span></span>
                   </div>
                 ))}
                 {sortedUsers.length === 0 && (
                   <div className="text-center py-8">
-                     <p className="text-gray-400 text-sm">Warte auf Teilnehmer...</p>
+                     <p className="text-gray-500 text-sm font-medium">Warte auf Teilnehmer...</p>
                   </div>
                 )}
               </div>
@@ -564,7 +595,6 @@
         return () => unsubscribe();
       }, []);
 
-      // Echtzeit GameState auslesen
       useEffect(() => {
         if (!userId || !activeRoom) return;
         const gameRef = doc(db, 'artifacts', activeRoom, 'public', 'gameState');
@@ -619,7 +649,6 @@
         }
       }, [gameState.status, gameState.currentQuestionIndex, gameState.showResults]);
 
-      // IMMER alle User laden für Live-Ranglisten bei allen Teilnehmern
       useEffect(() => {
         if (!userId || !activeRoom) return;
         
@@ -709,7 +738,7 @@
         shuffled = shuffled.slice(0, Math.min(count, ALL_QUESTIONS.length));
         
         const randomDoublePoints = Array.from({length: shuffled.length}, () => Math.random() < 0.3);
-        const currentDate = new Date().toLocaleDateString('de-DE'); // Datum speichern
+        const currentDate = new Date().toLocaleDateString('de-DE');
         
         await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { 
           status: 'running', 
@@ -761,7 +790,6 @@
         await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { status: 'podium' }, { merge: true });
       };
 
-      // Punktestände berechnen, ABER verstecken bis zur Auflösung!
       const activeQuestions = gameState.activeQuestions || [];
       const currentQIndex = gameState.currentQuestionIndex || 0;
       const currentQ = activeQuestions[currentQIndex];
@@ -770,8 +798,6 @@
 
       const displayUsers = allUsers.map(u => {
           let displayScore = u.score || 0;
-          // Wenn das Spiel läuft, die Antwort noch nicht aufgelöst ist, und der User die aktuelle Frage schon beantwortet hat:
-          // Dann subtrahieren wir den eventuellen Punktegewinn von seinem Score ab, damit er das nicht vorher sieht!
           if (gameState.status === 'running' && !reveal && u.answers && u.answers[currentQIndex] !== undefined) {
               if (currentQ && u.answers[currentQIndex] === currentQ.correct) {
                   displayScore -= (isDoublePoints ? 20 : 10);
@@ -804,7 +830,7 @@
             <AdminDashboard gameState={gameState} users={displayUsers} onStart={adminStart} onReveal={adminReveal} onNextQuestion={adminNext} onReset={adminReset} timeLeft={timeLeft} roomCode={roomCodeUI} />
             {gameState.status === 'feedback' && (
                <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
-                  <button onClick={adminToPodium} className="px-12 py-5 bg-yellow-500 text-white rounded-2xl font-bold shadow-2xl hover:bg-yellow-600 active:scale-95 transition-all text-xl whitespace-nowrap">Siegerpodest anzeigen</button>
+                  <button onClick={adminToPodium} className="px-12 py-5 bg-yellow-500/90 backdrop-blur-md text-white rounded-2xl font-bold shadow-2xl hover:bg-yellow-600 active:scale-95 transition-all text-xl whitespace-nowrap border border-yellow-300">Siegerpodest anzeigen</button>
                </div>
             )}
           </div>
@@ -814,11 +840,11 @@
         content = (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in">
             <div className="glass-panel p-12 max-w-sm w-full shadow-2xl">
-              <div className="w-24 h-24 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+              <div className="w-24 h-24 bg-blue-100/80 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
                 <User size={48} />
               </div>
-              <h2 className="text-3xl font-bold mb-3 text-gray-900">Moin {user.name.split(' ')[0]}!</h2>
-              <p className="text-gray-500 leading-relaxed">Bitte hab einen Moment Geduld. Der Trainer startet die Session gleich im Raum <strong className="text-blue-600">{roomCodeUI}</strong>.</p>
+              <h2 className="text-3xl font-bold mb-3 text-gray-900 drop-shadow-sm">Moin {user.name.split(' ')[0]}!</h2>
+              <p className="text-gray-600 leading-relaxed font-medium">Bitte hab einen Moment Geduld. Der Trainer startet die Session gleich im Raum <strong className="text-blue-700">{roomCodeUI}</strong>.</p>
             </div>
           </div>
         );
@@ -844,7 +870,7 @@
       return (
         <div className="flex-1 flex flex-col w-full h-full relative">
           <div className="w-full flex justify-center items-center px-6 md:px-10 pt-8 pb-4 shrink-0 z-50">
-            <img src="https://i.postimg.cc/3RYySfcs/google-icon-logo-new-old.png" alt="Google Logo" className="h-16 md:h-24 lg:h-28 object-contain drop-shadow-sm" />
+            <img src="https://i.postimg.cc/3RYySfcs/google-icon-logo-new-old.png" alt="Google Logo" className="h-16 md:h-24 lg:h-28 object-contain drop-shadow-sm opacity-90" />
           </div>
           {content}
         </div>
