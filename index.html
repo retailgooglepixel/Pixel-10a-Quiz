@@ -176,12 +176,12 @@
         { q: "Was bedeutet es, dass Gemini ein „multimodales“ KI-Modell ist?", options: ["Es funktioniert nur auf mehreren Geräten gleichzeitig", "Es verarbeitet Text, Bild, Audio und Code", "Es spricht verschiedene Sprachen automatisch", "Es benötigt mehrere Internetverbindungen"], correct: 1 },
         { q: "Über welche URL kann man die Webversion von Gemini primär aufrufen?", options: ["gemini.google.com", "search.google.de", "ai.google.com", "chat.google.com"], correct: 0 },
         { q: "Gibt es eine dedizierte Gemini-App für Android-Smartphones?", options: ["Nein, Gemini funktioniert nur im Browser", "Ja, sie kann den Google Assistant ersetzen", "Ja, aber nur für das Pixel 10", "Nein, nur für iOS-Geräte"], correct: 1 },
-        { q: "Kann Gemini eigene Bilder generieren?", options: ["Ja, basierend auf Textbeschreibungen (Prompts)", "Nein, es kann nur Bilder finden", "Nur in der kostenpflichtigen Version", "Nur auf Pixel-Smartphones"], correct: 0 },
+        { q: "Kann Gemini eigene Bilder generieren?", options: ["Ja, basierend auf Textbeschreibungen (Prompts) Gemini Nano Banana", "Nein, es kann nur Bilder finden", "Nur in der kostenpflichtigen Version", "Nur auf Pixel-Smartphones"], correct: 0 },
         { q: "Wie unterscheidet sich Gemini grundlegend von der klassischen Google-Suche?", options: ["Gemini liefert gesprächsbasierte, generierte Antworten statt einer reinen Link-Liste", "Es gibt keinen Unterschied", "Gemini ist langsamer", "Gemini sucht nicht im Internet"], correct: 0 },
         { q: "Welche Sprachen versteht Gemini?", options: ["Nur Englisch", "Mehr als 40 Sprachen, inklusive Deutsch", "Nur Englisch und Spanisch", "Nur europäische Sprachen"], correct: 1 },
         { q: "Kann Gemini bei der Reiseplanung helfen?", options: ["Ja, besonders durch die Verknüpfung mit Google Flights und Hotels", "Nein", "Nur für Geschäftsreisen", "Nur für Inlandsflüge"], correct: 0 },
         { q: "Was passiert, wenn man ein Foto in Gemini hochlädt?", options: ["Gemini kann das Bild analysieren und Fragen zum Inhalt beantworten", "Gemini löscht das Foto sofort", "Es gibt immer eine Fehlermeldung", "Gemini postet es auf Social Media"], correct: 0 },
-        { q: "Wer kann auf die eigenen Chats mit Gemini zugreifen?", options: ["Jeder im Internet", "Nur die eigenen Kontakte", "Die Chats sind privat im eigenen Konto gespeichert", "Niemand, sie werden nach 5 Minuten gelöscht"], correct: 2 },
+        { q: "Wer kann auf die eigenen Chats mit Gemini zugreifen?", options: ["Jeder im Internet", "Nur die eigenen Kontakte", "Die Chats sind privat in den eigenen Google-Konto-Aktivitäten gespeichert", "Niemand, sie werden nach 5 Minuten gelöscht"], correct: 2 },
         { q: "Welches Modell von Gemini läuft direkt lokal auf dem Pixel Smartphone?", options: ["Gemini Ultra", "Gemini Pro", "Gemini Nano", "Gemini Mega"], correct: 2 },
         { q: "Ist Gemini Advanced im Google One AI Premium Abo enthalten?", options: ["Nein", "Ja", "Nur in den USA", "Nur für Studenten"], correct: 1 },
         { q: "Wie hilft Gemini beim Schreiben von Nachrichten (Magic Compose)?", options: ["Es tippt automatisch ohne Nachfrage", "Es kann Tonalität und Länge von Texten anpassen", "Es übersetzt nur ins Englische", "Es löscht alte Nachrichten"], correct: 1 },
@@ -469,11 +469,10 @@
     };
 
     const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft, roomCode }) => {
-      // STATES FÜR DAS ADMIN-DROPDOWN
       const [tType, setTType] = useState('Vor Ort');
       const [qCount, setQCount] = useState(10);
       const [partner, setPartner] = useState('Vodafone');
-      const [theme, setTheme] = useState('Pixel 10a'); // NEUES THEMA-DROPDOWN
+      const [theme, setTheme] = useState('Pixel 10a'); 
 
       const activeQuestions = gameState.activeQuestions || [];
       const currentQ = activeQuestions[gameState.currentQuestionIndex || 0];
@@ -510,59 +509,69 @@
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-10">
             <div className="xl:col-span-2">
               {gameState.status === 'running' && currentQ ? (
-                <div className={`glass-panel p-8 md:p-12 border-l-[12px] ${isDoublePoints ? 'border-l-yellow-400' : 'border-l-blue-500'} animate-in relative`}>
-                  {isDoublePoints && (
-                    <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 text-sm font-bold px-4 py-2 rounded-full shadow-md flex items-center gap-2 animate-bounce">
-                      <Star size={16} fill="currentColor" />
-                      DOPPELTE PUNKTE RUNDE
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
-                    <div className="flex items-center gap-3">
-                      <span className="glass-panel border-blue-200 text-blue-800 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / {activeQuestions.length}</span>
-                      <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${timeLeft === 0 ? 'bg-red-100/90 text-red-700 animate-pulse' : 'glass-panel text-gray-700'}`}>
-                        <Clock size={14} /> {timeLeft} Sek
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-700 font-bold glass-panel px-4 py-2 rounded-full">
-                      <User size={18} /> 
-                      <span>{answersCount} / {users.length} Antworten</span>
-                    </div>
+                
+                <div className="flex flex-col md:flex-row gap-6 items-center md:items-stretch">
+                  {/* BILD BEREICH LINKS NEBEN DEM FRAGEN-FELD */}
+                  <div className="hidden md:flex w-1/4 justify-center items-center">
+                     <img src="https://i.postimg.cc/JncJ6BBF/frame-(5).png" alt="Pixel Mascot" className="w-full max-w-[200px] h-auto object-contain drop-shadow-2xl animate-in" />
                   </div>
                   
-                  <h2 className="text-2xl md:text-4xl font-bold mb-10 text-gray-900 leading-tight drop-shadow-sm">{currentQ.q}</h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-                    {currentQ.options.map((opt, i) => {
-                      const isCorrect = i === currentQ.correct;
-                      const colors = GOOGLE_COLORS[i % 4];
-                      let styleClass = `${colors.bg} ${colors.text}`;
-
-                      if (reveal) {
-                         if (isCorrect) styleClass += " scale-105 shadow-xl ring-4 ring-offset-2 ring-green-400";
-                         else styleClass += " opacity-40 grayscale";
-                      }
-
-                      return (
-                        <div key={i} className={`p-6 rounded-2xl shadow-md transition-all duration-300 flex justify-between items-center text-lg font-bold ${styleClass}`}>
-                          <span className="drop-shadow-sm">{opt}</span>
-                          {reveal && isCorrect && <CheckCircle2 size={28} />}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    {!reveal ? (
-                      <button onClick={onReveal} className="flex-1 py-5 bg-blue-600/90 backdrop-blur-md text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl hover:bg-blue-700 transition-all"><Eye size={24}/> Antwort auflösen</button>
-                    ) : (
-                      <button onClick={onNextQuestion} className="flex-1 py-5 bg-indigo-600/90 backdrop-blur-md text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl hover:bg-indigo-700 transition-all">
-                        {gameState.currentQuestionIndex < activeQuestions.length - 1 ? 'Nächste Frage' : 'Feedback einholen'} <ChevronRight size={24}/>
-                      </button>
+                  {/* FRAGEN UND ANTWORTEN BEREICH */}
+                  <div className={`glass-panel flex-1 p-8 md:p-12 border-l-[12px] ${isDoublePoints ? 'border-l-yellow-400' : 'border-l-blue-500'} animate-in relative`}>
+                    {isDoublePoints && (
+                      <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 text-sm font-bold px-4 py-2 rounded-full shadow-md flex items-center gap-2 animate-bounce">
+                        <Star size={16} fill="currentColor" />
+                        DOPPELTE PUNKTE RUNDE
+                      </div>
                     )}
+
+                    <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
+                      <div className="flex items-center gap-3">
+                        <span className="glass-panel border-blue-200 text-blue-800 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider">Frage {gameState.currentQuestionIndex + 1} / {activeQuestions.length}</span>
+                        <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${timeLeft === 0 ? 'bg-red-100/90 text-red-700 animate-pulse' : 'glass-panel text-gray-700'}`}>
+                          <Clock size={14} /> {timeLeft} Sek
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-700 font-bold glass-panel px-4 py-2 rounded-full">
+                        <User size={18} /> 
+                        <span>{answersCount} / {users.length} Antworten</span>
+                      </div>
+                    </div>
+                    
+                    <h2 className="text-2xl md:text-4xl font-bold mb-10 text-gray-900 leading-tight drop-shadow-sm">{currentQ.q}</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                      {currentQ.options.map((opt, i) => {
+                        const isCorrect = i === currentQ.correct;
+                        const colors = GOOGLE_COLORS[i % 4];
+                        let styleClass = `${colors.bg} ${colors.text}`;
+
+                        if (reveal) {
+                           if (isCorrect) styleClass += " scale-105 shadow-xl ring-4 ring-offset-2 ring-green-400";
+                           else styleClass += " opacity-40 grayscale";
+                        }
+
+                        return (
+                          <div key={i} className={`p-6 rounded-2xl shadow-md transition-all duration-300 flex justify-between items-center text-lg font-bold ${styleClass}`}>
+                            <span className="drop-shadow-sm">{opt}</span>
+                            {reveal && isCorrect && <CheckCircle2 size={28} />}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      {!reveal ? (
+                        <button onClick={onReveal} className="flex-1 py-5 bg-blue-600/90 backdrop-blur-md text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl hover:bg-blue-700 transition-all"><Eye size={24}/> Antwort auflösen</button>
+                      ) : (
+                        <button onClick={onNextQuestion} className="flex-1 py-5 bg-indigo-600/90 backdrop-blur-md text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-3 shadow-xl hover:bg-indigo-700 transition-all">
+                          {gameState.currentQuestionIndex < activeQuestions.length - 1 ? 'Nächste Frage' : 'Feedback einholen'} <ChevronRight size={24}/>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
+
               ) : (
                 <div className="glass-panel p-10 animate-in shadow-xl">
                    <div className="w-20 h-20 bg-blue-100/80 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -820,7 +829,6 @@
       const adminStart = async (trainingType, count, partner, theme) => {
         if (!activeRoom) return;
         
-        // Zieht die Fragen passend zum gewählten Dropdown "Thema"
         const selectedBank = QUESTION_BANKS[theme] || QUESTION_BANKS["Pixel 10a"];
         
         let shuffled = [...selectedBank].sort(() => 0.5 - Math.random());
@@ -837,7 +845,7 @@
           activeQuestions: shuffled,
           trainingType: trainingType,
           partner: partner,
-          thema: theme, // Das Thema wird in Firebase gespeichert für das Google Sheet
+          thema: theme,
           date: currentDate
         }, { merge: true });
       };
@@ -908,19 +916,10 @@
         await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { status: 'podium' }, { merge: true });
       };
 
-      const activeQuestions = gameState.activeQuestions || [];
-      const currentQIndex = gameState.currentQuestionIndex || 0;
-      const currentQ = activeQuestions[currentQIndex];
-      const isDoublePoints = gameState.doublePoints?.[currentQIndex];
-      const reveal = gameState.showResults;
-
+      // Da wir in handleAnswer keine Punkte abziehen/manipulieren, 
+      // bleibt der Score hier für die Anzeige einfach so, wie er direkt in der DB steht!
       const displayUsers = allUsers.map(u => {
           let displayScore = u.score || 0;
-          if (gameState.status === 'running' && !reveal && u.answers && u.answers[currentQIndex] !== undefined) {
-              if (currentQ && u.answers[currentQIndex] === currentQ.correct) {
-                  displayScore -= (isDoublePoints ? 20 : 10);
-              }
-          }
           return { ...u, displayScore };
       }).sort((a, b) => b.displayScore - a.displayScore);
 
