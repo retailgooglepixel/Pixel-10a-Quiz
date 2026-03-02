@@ -123,7 +123,6 @@
     const db = getFirestore(app);
     const BASE_APP_ID = 'pixel-10a-live-training';
 
-    // Die Google Farben (Blau, Rot, Gelb, Grün)
     const GOOGLE_COLORS = [
       { bg: 'bg-[#4285F4]', text: 'text-white', border: 'border-[#4285F4]' },
       { bg: 'bg-[#EA4335]', text: 'text-white', border: 'border-[#EA4335]' },
@@ -131,29 +130,65 @@
       { bg: 'bg-[#34A853]', text: 'text-white', border: 'border-[#34A853]' }
     ];
 
-    // GESAMTER FRAGENKATALOG (Wird vom Admin dynamisch gemischt)
-    const ALL_QUESTIONS = [
-      { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen und schneller Antworten finden kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
-      { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
-      { q: "Wie hilft 'Circle to Search' den Nutzern des Pixel 10a im Alltag?", options: ["Man kreist das Smartphone in der Luft", "Man kann Bilder/Texte einkreisen, um direkt danach zu suchen", "Es sucht automatisch nach WLAN", "Es organisiert Kontakte in Kreisen"], correct: 1 },
-      { q: "Welches Kamera-Feature sorgt dafür, dass auf Gruppenfotos jeder gut aussieht, indem ähnliche Fotos kombiniert werden?", options: ["Magischer Editor", "Scharfzeichnen", "Beste Aufnahme (Auto Best Take)", "Nachtsicht"], correct: 2 },
-      { q: "Wie unterstützt der 'Magische Audio-Radierer' beim Pixel 10a?", options: ["Er reduziert störende Hintergrundgeräusche in Videos", "Er fügt automatisch Musik zu Fotos hinzu", "Er löscht Sprachnachrichten", "Er verbessert die Lautsprecher-Qualität"], correct: 0 },
-      { q: "Was zeichnet das Actua-Display des Pixel 10a aus?", options: ["Es ist ein E-Ink-Display zum Lesen", "Es ist besonders hell und flüssig, dank bis zu 120 Hz Bildwiederholungsrate, ideal für draußen", "Es hat eine Auflösung von 8K", "Es lässt sich in der Mitte falten"], correct: 1 },
-      { q: "Welche Funktion hilft dabei, verschwommene oder alte, unscharfe Fotos im Nachhinein zu retten?", options: ["Scharfzeichnen (Photo Unblur)", "Magischer Editor", "Super-Resolution-Zoom", "Astromodus"], correct: 0 },
-      { q: "Welcher Prozessor treibt das Google Pixel 10a an und ermöglicht die schnellen KI-Funktionen?", options: ["Snapdragon 8 Gen 3", "Google Tensor G4", "Exynos 2400", "A16 Bionic"], correct: 1 },
-      { q: "Wie schützt das Pixel 10a die Daten der Nutzer auf Hardware-Ebene?", options: ["Google Shield Protect", "Titan M2-Sicherheitschip", "Externe verschlüsselte SD-Karte", "Nox Secure"], correct: 1 },
-      { q: "Welche KI-Funktion hilft am besten im Ausland, um ein Straßenschild oder eine Speisekarte zu verstehen?", options: ["Google Maps", "Live-Übersetzung", "Circle to Search", "Pixel Screenshots"], correct: 1 },
-      { q: "Was macht die 'Pixel Screenshots'-App auf dem Pixel 10a so besonders?", options: ["Sie speichert Screenshots in der Cloud", "Sie macht alle 10 Minuten einen Screenshot", "Sie nutzt KI, um Inhalte von Screenshots durchsuchbar zu machen", "Sie teilt Screenshots sofort auf Social Media"], correct: 2 },
-      { q: "Wie hilft das Pixel 10a Nutzern, die nachts oder bei schlechtem Licht fotografieren möchten?", options: ["Mit dem integrierten LED-Ringblitz", "Mit der Funktion 'Nachtsicht' (Night Sight)", "Durch automatische Aufhellung", "Mit dem Makrofokus"], correct: 1 },
-      { q: "Was passiert, wenn ein Nutzer auf dem Pixel 10a einen unerwünschten Spam-Anruf erhält?", options: ["Der Anruf-Filter kann Spam prüfen und blockieren", "Das Smartphone schaltet sich stumm", "Der Anrufer wird blockiert, aber die Mailbox wird voll", "Man benötigt eine Drittanbieter-App"], correct: 0 },
-      { q: "Ein Kunde möchte störende Personen aus dem Hintergrund eines Urlaubsfotos entfernen. Welches Tool nutzt er?", options: ["Scharfzeichnen", "Beste Aufnahme", "Magischer Editor", "Action-Pan"], correct: 2 },
-      { q: "Wie optimiert das Pixel 10a seine Akkulaufzeit im Alltag?", options: ["Es schaltet das Display sofort ab", "Es beendet alle Hintergrund-Apps", "Mit dem 'Intelligenten Akku', der die App-Nutzung lernt", "Es drosselt dauerhaft die Leistung"], correct: 2 },
-      { q: "Ein Kunde möchte aus einer einfachen Kritzelei eine originelle Einladung erstellen. Welche Funktion nutzt er?", options: ["Nano Banana (Bilder erstellen)", "Magischer Editor", "Scharfzeichnen", "Circle to Search"], correct: 0 },
-      { q: "Welches Angebot erhalten Käufer eines neuen Google Pixel 10a in der Regel NICHT kostenlos zum Testen?", options: ["YouTube Premium", "Fitbit Premium", "Google One AI Premium", "Google Play Pass"], correct: 2 },
-      { q: "Worüber kannst du mit Gemini Live auf dem Pixel 10a ganz natürlich sprechen?", options: ["Nur über Textnachrichten", "Über Dinge, die du auf dem Bildschirm siehst oder in der Kamera teilst", "Nur über das Wetter", "Gar nichts von beidem"], correct: 1 },
-      { q: "Welche Kamera-Ausstattung bietet das Pixel 10a auf der Rückseite?", options: ["Nur Weitwinkel", "Dual-Kamera", "Dreifachkamerasystem", "Vierfachkamerasystem"], correct: 1 },
-      { q: "Was macht das Aluminium-Gehäuse des Pixel 10a besonders nachhaltig?", options: ["Es ist zu 100 % recycelt", "Es wird aus Raumschiffen gewonnen", "Es ist biologisch abbaubar", "Es besteht aus Plastik"], correct: 0 }
-    ];
+    // DIE 3 VERSCHIEDENEN FRAGEN-POOLS
+    const QUESTION_BANKS = {
+      "Pixel 10a": [
+        { q: "Eine Kundin möchte wissen, wie das Pixel 10a sie beim Multitasking unterstützen und schneller Antworten finden kann. Was ist das wichtigste Tool?", options: ["Google Assistant", "Gemini", "Pixel Screenshots", "Gemini Nano"], correct: 1 },
+        { q: "Welche Softwarezusage gibt Google für das Pixel 10a für mehr Langlebigkeit?", options: ["3 Jahre OS- & 5 Jahre Sicherheitsupdates", "5 Jahre OS-Updates per Pixel Drop", "7 Jahre Betriebssystem- und Sicherheitsupdates", "4 Jahre Support durch Titan M2"], correct: 2 },
+        { q: "Wie hilft 'Circle to Search' den Nutzern des Pixel 10a im Alltag?", options: ["Man kreist das Smartphone in der Luft", "Man kann Bilder/Texte einkreisen, um direkt danach zu suchen", "Es sucht automatisch nach WLAN", "Es organisiert Kontakte in Kreisen"], correct: 1 },
+        { q: "Welches Kamera-Feature sorgt dafür, dass auf Gruppenfotos jeder gut aussieht, indem ähnliche Fotos kombiniert werden?", options: ["Magischer Editor", "Scharfzeichnen", "Beste Aufnahme (Auto Best Take)", "Nachtsicht"], correct: 2 },
+        { q: "Wie unterstützt der 'Magische Audio-Radierer' beim Pixel 10a?", options: ["Er reduziert störende Hintergrundgeräusche in Videos", "Er fügt automatisch Musik zu Fotos hinzu", "Er löscht Sprachnachrichten", "Er verbessert die Lautsprecher-Qualität"], correct: 0 },
+        { q: "Was zeichnet das Actua-Display des Pixel 10a aus?", options: ["Es ist ein E-Ink-Display zum Lesen", "Es ist besonders hell und flüssig, dank bis zu 120 Hz Bildwiederholungsrate, ideal für draußen", "Es hat eine Auflösung von 8K", "Es lässt sich in der Mitte falten"], correct: 1 },
+        { q: "Welche Funktion hilft dabei, verschwommene oder alte, unscharfe Fotos im Nachhinein zu retten?", options: ["Scharfzeichnen (Photo Unblur)", "Magischer Editor", "Super-Resolution-Zoom", "Astromodus"], correct: 0 },
+        { q: "Welcher Prozessor treibt das Google Pixel 10a an und ermöglicht die schnellen KI-Funktionen?", options: ["Snapdragon 8 Gen 3", "Google Tensor G4", "Exynos 2400", "A16 Bionic"], correct: 1 },
+        { q: "Wie schützt das Pixel 10a die Daten der Nutzer auf Hardware-Ebene?", options: ["Google Shield Protect", "Titan M2-Sicherheitschip", "Externe verschlüsselte SD-Karte", "Nox Secure"], correct: 1 },
+        { q: "Welche KI-Funktion hilft am besten im Ausland, um ein Straßenschild oder eine Speisekarte zu verstehen?", options: ["Google Maps", "Live-Übersetzung", "Circle to Search", "Pixel Screenshots"], correct: 1 },
+        { q: "Was macht die 'Pixel Screenshots'-App auf dem Pixel 10a so besonders?", options: ["Sie speichert Screenshots in der Cloud", "Sie macht alle 10 Minuten einen Screenshot", "Sie nutzt KI, um Inhalte von Screenshots durchsuchbar zu machen", "Sie teilt Screenshots sofort auf Social Media"], correct: 2 },
+        { q: "Wie hilft das Pixel 10a Nutzern, die nachts oder bei schlechtem Licht fotografieren möchten?", options: ["Mit dem integrierten LED-Ringblitz", "Mit der Funktion 'Nachtsicht' (Night Sight)", "Durch automatische Aufhellung", "Mit dem Makrofokus"], correct: 1 },
+        { q: "Was passiert, wenn ein Nutzer auf dem Pixel 10a einen unerwünschten Spam-Anruf erhält?", options: ["Der Anruf-Filter kann Spam prüfen und blockieren", "Das Smartphone schaltet sich stumm", "Der Anrufer wird blockiert, aber die Mailbox wird voll", "Man benötigt eine Drittanbieter-App"], correct: 0 },
+        { q: "Ein Kunde möchte störende Personen aus dem Hintergrund eines Urlaubsfotos entfernen. Welches Tool nutzt er?", options: ["Scharfzeichnen", "Beste Aufnahme", "Magischer Editor", "Action-Pan"], correct: 2 },
+        { q: "Wie optimiert das Pixel 10a seine Akkulaufzeit im Alltag?", options: ["Es schaltet das Display sofort ab", "Es beendet alle Hintergrund-Apps", "Mit dem 'Intelligenten Akku', der die App-Nutzung lernt", "Es drosselt dauerhaft die Leistung"], correct: 2 },
+        { q: "Ein Kunde möchte aus einer einfachen Kritzelei eine originelle Einladung erstellen. Welche Funktion nutzt er?", options: ["Nano Banana (Bilder erstellen)", "Magischer Editor", "Scharfzeichnen", "Circle to Search"], correct: 0 },
+        { q: "Welches Angebot erhalten Käufer eines neuen Google Pixel 10a in der Regel NICHT kostenlos zum Testen?", options: ["YouTube Premium", "Fitbit Premium", "Google One AI Premium", "Google Play Pass"], correct: 2 },
+        { q: "Worüber kannst du mit Gemini Live auf dem Pixel 10a ganz natürlich sprechen?", options: ["Nur über Textnachrichten", "Über Dinge, die du auf dem Bildschirm siehst oder in der Kamera teilst", "Nur über das Wetter", "Gar nichts von beidem"], correct: 1 },
+        { q: "Welche Kamera-Ausstattung bietet das Pixel 10a auf der Rückseite?", options: ["Nur Weitwinkel", "Dual-Kamera", "Dreifachkamerasystem", "Vierfachkamerasystem"], correct: 1 },
+        { q: "Was macht das Aluminium-Gehäuse des Pixel 10a besonders nachhaltig?", options: ["Es ist zu 100 % recycelt", "Es wird aus Raumschiffen gewonnen", "Es ist biologisch abbaubar", "Es besteht aus Plastik"], correct: 0 }
+      ],
+      "Pixel 10 Deep Dive": [
+        { q: "Welche Funktion würde einem Hobby-Fotografen helfen, um bessere Fotos zu machen?", options: ["Kamera-Coach", "Veo3", "Magisches Auge", "Pixel-Trainer"], correct: 0 },
+        { q: "Wie viel leistungsstärker ist der Zoom des Pixel 10 Pro im Vergleich zum Pixel 9 Pro?", options: ["Er ist derselbe", "Doppelt so leistungsstark", "Mehr als 3x so leistungsstark", "Mehr als 10x so leistungsstark"], correct: 1 },
+        { q: "Worüber kannst du mit Gemini Live auf Pixel sprechen?", options: ["Was du auf dem Bildschirm siehst", "Was mit deiner Kamera geteilt wird", "Beides", "Gar nichts von beidem"], correct: 2 },
+        { q: "Was können deine KI-generierten Videos dank Gemini und Veo3 Fast bieten?", options: ["Sound", "Sprache", "Menschen", "Alles davon"], correct: 3 },
+        { q: "Was macht das Aluminium in Raumfahrtqualität des Pixel 10 Pro zu einer nachhaltigen Wahl?", options: ["Es ist zu 100 % recycelt.", "Es wird aus alten Raumschiffen hergestellt.", "Es wird aus Aluminiumdosen hergestellt.", "Es besteht vollständig aus reinem Aluminium."], correct: 0 },
+        { q: "Wie lange könntest du einem Kunden sagen, dass das Pixel mit der Zeit immer besser wird?", options: ["7 Jahre", "5 Jahre", "3 Jahre", "2 Jahre"], correct: 0 },
+        { q: "Welches Betriebssystem nutzt die Pixel 10 Serie ab Werk?", options: ["Android 10", "Android 13", "Android 16", "Android 11"], correct: 2 },
+        { q: "Welche Kamera-Ausstattung bietet das Pixel 10 Pro (XL)?", options: ["Nur Weitwinkel", "Dual-Kamera", "Profi-Dreifachkamerasystem mit 50/48/48 MP", "Dual-Kamera mit 100 MP"], correct: 2 },
+        { q: "Wie viel RAM bietet das Pixel 10 Pro (XL) und das Pixel 10 Pro Fold?", options: ["8GB", "12GB", "16GB", "14GB"], correct: 2 },
+        { q: "Wie hoch ist der maximale Speicher des Pixel 10 (Non-Pro)?", options: ["64GB", "128GB", "512GB", "256GB"], correct: 3 },
+        { q: "Welcher Sicherheitschip ist in der Pixel 10 Serie enthalten?", options: ["Titan M", "Nox Secure", "Titan M2", "Google Shield Protect"], correct: 2 },
+        { q: "Welches Displayglas kommt beim Pixel 10 zum Einsatz?", options: ["Aluminum Glass", "Saphierglas", "Corning® Gorilla® Glass Victus® 2", "Liquid OLED"], correct: 2 },
+        { q: "Welche Speichergröße bietet das Pixel 10 Pro XL erstmals standardmäßig?", options: ["128GB", "512GB", "256GB", "64GB"], correct: 2 },
+        { q: "Wie lang können mit Veo3 erzeugte Videos werden?", options: ["3 Sekunden", "5 Sekunden", "8 Sekunden", "10 Sekunden"], correct: 2 },
+        { q: "Was zeichnet den Akku des Pixel 10 Pro aus?", options: ["Er ist wechselbar", "Intelligenter Akku mit extrem langer Laufzeit", "Er lädt nur kabellos", "Er hält 1 Woche"], correct: 1 }
+      ],
+      "Pixel 10 & Gemini": [
+        { q: "Was ist Google Gemini?", options: ["Ein neues Android-Betriebssystem", "Ein Smartphone von Google", "Ein fortschrittliches KI-Modell von Google", "Eine neue Suchmaschine"], correct: 2 },
+        { q: "Was bedeutet es, dass Gemini ein „multimodales“ KI-Modell ist?", options: ["Es funktioniert nur auf mehreren Geräten gleichzeitig", "Es verarbeitet Text, Bild, Audio und Code", "Es spricht verschiedene Sprachen automatisch", "Es benötigt mehrere Internetverbindungen"], correct: 1 },
+        { q: "Über welche URL kann man die Webversion von Gemini primär aufrufen?", options: ["gemini.google.com", "search.google.de", "ai.google.com", "chat.google.com"], correct: 0 },
+        { q: "Gibt es eine dedizierte Gemini-App für Android-Smartphones?", options: ["Nein, Gemini funktioniert nur im Browser", "Ja, sie kann den Google Assistant ersetzen", "Ja, aber nur für das Pixel 10", "Nein, nur für iOS-Geräte"], correct: 1 },
+        { q: "Kann Gemini eigene Bilder generieren?", options: ["Ja, basierend auf Textbeschreibungen (Prompts)", "Nein, es kann nur Bilder finden", "Nur in der kostenpflichtigen Version", "Nur auf Pixel-Smartphones"], correct: 0 },
+        { q: "Wie unterscheidet sich Gemini grundlegend von der klassischen Google-Suche?", options: ["Gemini liefert gesprächsbasierte, generierte Antworten statt einer reinen Link-Liste", "Es gibt keinen Unterschied", "Gemini ist langsamer", "Gemini sucht nicht im Internet"], correct: 0 },
+        { q: "Welche Sprachen versteht Gemini?", options: ["Nur Englisch", "Mehr als 40 Sprachen, inklusive Deutsch", "Nur Englisch und Spanisch", "Nur europäische Sprachen"], correct: 1 },
+        { q: "Kann Gemini bei der Reiseplanung helfen?", options: ["Ja, besonders durch die Verknüpfung mit Google Flights und Hotels", "Nein", "Nur für Geschäftsreisen", "Nur für Inlandsflüge"], correct: 0 },
+        { q: "Was passiert, wenn man ein Foto in Gemini hochlädt?", options: ["Gemini kann das Bild analysieren und Fragen zum Inhalt beantworten", "Gemini löscht das Foto sofort", "Es gibt immer eine Fehlermeldung", "Gemini postet es auf Social Media"], correct: 0 },
+        { q: "Wer kann auf die eigenen Chats mit Gemini zugreifen?", options: ["Jeder im Internet", "Nur die eigenen Kontakte", "Die Chats sind privat im eigenen Konto gespeichert", "Niemand, sie werden nach 5 Minuten gelöscht"], correct: 2 },
+        { q: "Welches Modell von Gemini läuft direkt lokal auf dem Pixel Smartphone?", options: ["Gemini Ultra", "Gemini Pro", "Gemini Nano", "Gemini Mega"], correct: 2 },
+        { q: "Ist Gemini Advanced im Google One AI Premium Abo enthalten?", options: ["Nein", "Ja", "Nur in den USA", "Nur für Studenten"], correct: 1 },
+        { q: "Wie hilft Gemini beim Schreiben von Nachrichten (Magic Compose)?", options: ["Es tippt automatisch ohne Nachfrage", "Es kann Tonalität und Länge von Texten anpassen", "Es übersetzt nur ins Englische", "Es löscht alte Nachrichten"], correct: 1 },
+        { q: "Was ist 'Circle to Search'?", options: ["Eine Suchfunktion, bei der man Inhalte auf dem Bildschirm einkreist", "Ein neues Spiel", "Eine App für Kontakte", "Ein Kameramodus"], correct: 0 },
+        { q: "Kann Gemini YouTube-Videos zusammenfassen?", options: ["Nein", "Ja, wenn die YouTube-Erweiterung aktiv ist", "Nur Musikvideos", "Nur auf dem PC"], correct: 1 }
+      ]
+    };
 
     const TimerCircle = ({ seconds }) => (
       <div className="flex justify-center mb-6">
@@ -347,11 +382,9 @@
       const top3 = leaderboard.slice(0, 3);
       const others = leaderboard.slice(3);
 
-      // Spezielles Layout für den Admin: Podium rechts, restliche Platzierungen links!
       if (user?.isAdmin) {
          return (
             <div className="flex-1 flex flex-col md:flex-row w-full max-w-6xl mx-auto p-4 md:p-8 gap-8 animate-in">
-               {/* Linke Seite: Weitere Platzierungen */}
                <div className="w-full md:w-1/3 bg-white/60 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-white/60 flex flex-col h-[75vh]">
                   <h3 className="text-xl font-bold text-gray-800 mb-4 drop-shadow-sm border-b border-gray-300/50 pb-3">Weitere Platzierungen</h3>
                   <div className="overflow-y-auto flex-1 space-y-3 pr-2">
@@ -373,7 +406,6 @@
                   </div>
                </div>
 
-               {/* Rechte Seite: Das Siegerpodest (Top 3) */}
                <div className="w-full md:w-2/3 flex flex-col items-center justify-center p-4">
                   <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-16 text-center drop-shadow-sm">Siegerpodest</h1>
                   <div className="flex items-end justify-center gap-3 md:gap-6 w-full px-2 h-72 max-w-2xl mx-auto">
@@ -402,7 +434,6 @@
          );
       }
 
-      // Normales Layout für die Teilnehmer
       return (
         <div className="flex-1 flex flex-col items-center justify-center p-4 animate-in w-full max-w-xl mx-auto pb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12 text-center drop-shadow-sm">Top Ergebnisse</h1>
@@ -438,9 +469,11 @@
     };
 
     const AdminDashboard = ({ gameState, users, onNextQuestion, onReveal, onStart, onReset, timeLeft, roomCode }) => {
+      // STATES FÜR DAS ADMIN-DROPDOWN
       const [tType, setTType] = useState('Vor Ort');
       const [qCount, setQCount] = useState(10);
       const [partner, setPartner] = useState('Vodafone');
+      const [theme, setTheme] = useState('Pixel 10a'); // NEUES THEMA-DROPDOWN
 
       const activeQuestions = gameState.activeQuestions || [];
       const currentQ = activeQuestions[gameState.currentQuestionIndex || 0];
@@ -460,6 +493,7 @@
                 <span className="glass-panel border-blue-200 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 text-blue-800"><KeyRound size={12}/> RAUM: {roomCode}</span>
                 {gameState.status === 'running' && (
                   <>
+                    <span className="glass-panel border-indigo-200 px-3 py-1 rounded-lg text-xs font-bold text-indigo-800">{gameState.thema}</span>
                     <span className="glass-panel border-purple-200 px-3 py-1 rounded-lg text-xs font-bold text-purple-800">{gameState.trainingType}</span>
                     <span className="glass-panel border-orange-200 px-3 py-1 rounded-lg text-xs font-bold text-orange-800">{gameState.partner}</span>
                   </>
@@ -537,11 +571,10 @@
                    <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center drop-shadow-sm">Bereit für den Start?</h2>
                    <p className="text-gray-600 text-center mb-8">Sag den Teilnehmern, sie sollen den Raum-Code <strong className="text-blue-700">{roomCode}</strong> eingeben.</p>
                    
-                   {/* DIESER BEREICH WIRD NUR VOM ADMIN GESEHEN */}
                    <div className="bg-white/40 backdrop-blur-sm p-6 rounded-2xl border border-white/60 shadow-sm">
                       <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Shuffle size={18}/> Trainings-Einstellungen</h3>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
                            <label className="block text-xs font-bold text-gray-600 uppercase mb-2 drop-shadow-sm">Partner</label>
                            <select value={partner} onChange={e => setPartner(e.target.value)} className="w-full p-4 rounded-xl border border-white/80 bg-white/60 backdrop-blur-md font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
@@ -560,7 +593,15 @@
                            </select>
                         </div>
                         <div>
-                           <label className="block text-xs font-bold text-gray-600 uppercase mb-2 drop-shadow-sm">Fragen</label>
+                           <label className="block text-xs font-bold text-gray-600 uppercase mb-2 drop-shadow-sm">Thema / Inhalt</label>
+                           <select value={theme} onChange={e => setTheme(e.target.value)} className="w-full p-4 rounded-xl border border-white/80 bg-white/60 backdrop-blur-md font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                              <option value="Pixel 10a">Pixel 10a</option>
+                              <option value="Pixel 10 Deep Dive">Pixel 10 Deep Dive</option>
+                              <option value="Pixel 10 & Gemini">Pixel 10 & Gemini</option>
+                           </select>
+                        </div>
+                        <div>
+                           <label className="block text-xs font-bold text-gray-600 uppercase mb-2 drop-shadow-sm">Fragen (Anzahl)</label>
                            <select value={qCount} onChange={e => setQCount(Number(e.target.value))} className="w-full p-4 rounded-xl border border-white/80 bg-white/60 backdrop-blur-md font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                               <option value={5}>5 Fragen</option>
                               <option value={10}>10 Fragen</option>
@@ -573,7 +614,7 @@
                         </div>
                       </div>
                       
-                      <button onClick={() => onStart(tType, qCount, partner)} className="w-full py-5 bg-green-500/90 backdrop-blur-md text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl hover:bg-green-600 active:scale-95 transition-all text-lg">
+                      <button onClick={() => onStart(tType, qCount, partner, theme)} className="w-full py-5 bg-green-500/90 backdrop-blur-md text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl hover:bg-green-600 active:scale-95 transition-all text-lg">
                         <Shuffle size={24}/> Fragen mischen & Quiz starten
                       </button>
                    </div>
@@ -594,7 +635,7 @@
                       </span>
                       <span className="font-bold text-gray-800 drop-shadow-sm">{u.name}</span>
                     </div>
-                    <span className="font-bold text-blue-700 drop-shadow-sm">{u.score} <span className="text-[10px] text-gray-500">Pkt</span></span>
+                    <span className="font-bold text-blue-700 drop-shadow-sm">{u.displayScore} <span className="text-[10px] text-gray-500">Pkt</span></span>
                   </div>
                 ))}
                 {sortedUsers.length === 0 && (
@@ -760,7 +801,6 @@
         
         setUserAnswer(idx); 
         
-        // PUNKTE WERDEN HIER NOCH NICHT VERGEBEN! (Nur die Antwort und Zeit gespeichert, um Spannung aufzubauen)
         await updateDoc(doc(db, 'artifacts', activeRoom, 'users', userId), { 
           lastAnswerIndex: idx,
           lastAnswerTime: Date.now(),
@@ -777,11 +817,14 @@
         setStep('waiting'); 
       };
 
-      const adminStart = async (trainingType, count, partner) => {
+      const adminStart = async (trainingType, count, partner, theme) => {
         if (!activeRoom) return;
         
-        let shuffled = [...ALL_QUESTIONS].sort(() => 0.5 - Math.random());
-        shuffled = shuffled.slice(0, Math.min(count, ALL_QUESTIONS.length));
+        // Zieht die Fragen passend zum gewählten Dropdown "Thema"
+        const selectedBank = QUESTION_BANKS[theme] || QUESTION_BANKS["Pixel 10a"];
+        
+        let shuffled = [...selectedBank].sort(() => 0.5 - Math.random());
+        shuffled = shuffled.slice(0, Math.min(count, selectedBank.length));
         
         const randomDoublePoints = Array.from({length: shuffled.length}, () => Math.random() < 0.3);
         const currentDate = new Date().toLocaleDateString('de-DE');
@@ -794,6 +837,7 @@
           activeQuestions: shuffled,
           trainingType: trainingType,
           partner: partner,
+          thema: theme, // Das Thema wird in Firebase gespeichert für das Google Sheet
           date: currentDate
         }, { merge: true });
       };
@@ -807,23 +851,19 @@
         const isDouble = gameState.doublePoints?.[currentQIndex];
         const multiplier = isDouble ? 2 : 1;
 
-        // PUNKTE-BERECHNUNG NACH SCHNELLIGKEIT:
-        // Alle richtigen Antworten filtern und nach Zeit sortieren
         const correctUsers = allUsers.filter(u => !u.isAdmin && u.lastAnswerIndex === currentQ.correct);
         correctUsers.sort((a, b) => (a.lastAnswerTime || 0) - (b.lastAnswerTime || 0));
 
         const updatePromises = [];
 
-        // Die Schnellen bekommen am meisten Punkte (100, 95, 90 ... mind. 5 Punkte)
         correctUsers.forEach((u, i) => {
           let pointsToAdd = Math.max(5, 100 - (i * 5)) * multiplier;
           updatePromises.push(updateDoc(doc(db, 'artifacts', activeRoom, 'users', u.id), {
              score: increment(pointsToAdd),
-             lastPointsEarned: pointsToAdd // Um den Teilnehmern zu zeigen, wie viel sie bekommen haben
+             lastPointsEarned: pointsToAdd 
           }));
         });
 
-        // Alle, die falsch oder gar nicht geantwortet haben, bekommen 0 Punkte auf dem Bildschirm angezeigt
         const wrongUsers = allUsers.filter(u => !u.isAdmin && u.lastAnswerIndex !== currentQ.correct && u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null);
         wrongUsers.forEach(u => {
             updatePromises.push(updateDoc(doc(db, 'artifacts', activeRoom, 'users', u.id), {
@@ -868,11 +908,25 @@
         await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { status: 'podium' }, { merge: true });
       };
 
-      // Rangliste für die Anzeige
-      const displayUsers = [...allUsers].sort((a, b) => (b.score || 0) - (a.score || 0));
+      const activeQuestions = gameState.activeQuestions || [];
+      const currentQIndex = gameState.currentQuestionIndex || 0;
+      const currentQ = activeQuestions[currentQIndex];
+      const isDoublePoints = gameState.doublePoints?.[currentQIndex];
+      const reveal = gameState.showResults;
+
+      const displayUsers = allUsers.map(u => {
+          let displayScore = u.score || 0;
+          if (gameState.status === 'running' && !reveal && u.answers && u.answers[currentQIndex] !== undefined) {
+              if (currentQ && u.answers[currentQIndex] === currentQ.correct) {
+                  displayScore -= (isDoublePoints ? 20 : 10);
+              }
+          }
+          return { ...u, displayScore };
+      }).sort((a, b) => b.displayScore - a.displayScore);
+
       const myIndex = displayUsers.findIndex(u => u.id === userId);
       const myRank = myIndex >= 0 ? myIndex + 1 : '-';
-      const myScore = myIndex >= 0 ? displayUsers[myIndex].score : 0;
+      const myScore = myIndex >= 0 ? displayUsers[myIndex].displayScore : 0;
 
       let content = null;
 
