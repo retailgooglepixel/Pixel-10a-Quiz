@@ -149,7 +149,7 @@
       { q: "Ein Kunde möchte störende Personen aus dem Hintergrund eines Urlaubsfotos entfernen. Welches Tool nutzt er?", options: ["Scharfzeichnen", "Beste Aufnahme", "Magischer Editor", "Action-Pan"], correct: 2 },
       { q: "Wie optimiert das Pixel 10a seine Akkulaufzeit im Alltag?", options: ["Es schaltet das Display sofort ab", "Es beendet alle Hintergrund-Apps", "Mit dem 'Intelligenten Akku', der die App-Nutzung lernt", "Es drosselt dauerhaft die Leistung"], correct: 2 },
       { q: "Ein Kunde möchte aus einer einfachen Kritzelei eine originelle Einladung erstellen. Welche Funktion nutzt er?", options: ["Nano Banana (Bilder erstellen)", "Magischer Editor", "Scharfzeichnen", "Circle to Search"], correct: 0 },
-      { q: "Welches Angebot erhalten Käufer eines neuen Google Pixel 10a in der Regel kostenlos zum Testen?", options: ["YouTube Premium", "Fitbit Premium", "Google One AI Premium", "Google Play Pass"], correct: 2 },
+      { q: "Welches Angebot erhalten Käufer eines neuen Google Pixel 10a in der Regel NICHT kostenlos zum Testen?", options: ["YouTube Premium", "Fitbit Premium", "Google One AI Premium", "Google Play Pass"], correct: 2 },
       { q: "Worüber kannst du mit Gemini Live auf dem Pixel 10a ganz natürlich sprechen?", options: ["Nur über Textnachrichten", "Über Dinge, die du auf dem Bildschirm siehst oder in der Kamera teilst", "Nur über das Wetter", "Gar nichts von beidem"], correct: 1 },
       { q: "Welche Kamera-Ausstattung bietet das Pixel 10a auf der Rückseite?", options: ["Nur Weitwinkel", "Dual-Kamera", "Dreifachkamerasystem", "Vierfachkamerasystem"], correct: 1 },
       { q: "Was macht das Aluminium-Gehäuse des Pixel 10a besonders nachhaltig?", options: ["Es ist zu 100 % recycelt", "Es wird aus Raumschiffen gewonnen", "Es ist biologisch abbaubar", "Es besteht aus Plastik"], correct: 0 }
@@ -207,7 +207,7 @@
       );
     };
 
-    const QuizScreen = ({ question, index, totalQuestions, onAnswer, timeLeft, showResults, userAnswer, isDoublePoints, myRank, myScore }) => {
+    const QuizScreen = ({ question, index, totalQuestions, onAnswer, timeLeft, showResults, userAnswer, isDoublePoints, myRank, myScore, lastPointsEarned }) => {
       return (
         <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4 md:p-8 animate-in overflow-y-auto">
           
@@ -269,7 +269,7 @@
                   key={i}
                   disabled={showResults || userAnswer !== null}
                   onClick={() => onAnswer(i)}
-                  className={`w-full p-5 md:p-6 text-left rounded-2xl transition-all duration-300 font-bold flex justify-between items-center group ${styleClass}`}
+                  className={`w-full p-5 md:p-6 text-left rounded-2xl shadow-md border-2 transition-all duration-300 font-bold flex justify-between items-center group ${styleClass}`}
                 >
                   <span className="text-lg drop-shadow-sm">{opt}</span>
                   {showResults && isCorrect && <CheckCircle2 className={colors.text} size={28} />}
@@ -291,7 +291,7 @@
             <div className={`mt-8 p-6 rounded-2xl border backdrop-blur-md flex items-center justify-center gap-4 animate-in shadow-md ${userAnswer === question.correct ? 'bg-green-100/90 border-green-300 text-green-800' : 'bg-red-50/90 border-red-200 text-red-800'}`}>
               <h3 className="font-bold text-xl text-center">
                 {userAnswer === question.correct 
-                  ? (isDoublePoints ? "🎉 Richtig! +20 Punkte!" : "🎉 Richtig! +10 Punkte!") 
+                  ? (isDoublePoints ? `🎉 Richtig! Schnelligkeits-Bonus: +${lastPointsEarned} Punkte!` : `🎉 Richtig! Schnelligkeits-Bonus: +${lastPointsEarned} Punkte!`) 
                   : (userAnswer === -1 ? "⏱️ Zeit abgelaufen (0 Punkte)" : "❌ Leider falsch (0 Punkte)")}
               </h3>
             </div>
@@ -345,44 +345,94 @@
 
     const PodiumScreen = ({ leaderboard, score, name, user, onAdminReset }) => {
       const top3 = leaderboard.slice(0, 3);
+      const others = leaderboard.slice(3);
+
+      // Spezielles Layout für den Admin: Podium rechts, restliche Platzierungen links!
+      if (user?.isAdmin) {
+         return (
+            <div className="flex-1 flex flex-col md:flex-row w-full max-w-6xl mx-auto p-4 md:p-8 gap-8 animate-in">
+               {/* Linke Seite: Weitere Platzierungen */}
+               <div className="w-full md:w-1/3 bg-white/60 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-white/60 flex flex-col h-[75vh]">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4 drop-shadow-sm border-b border-gray-300/50 pb-3">Weitere Platzierungen</h3>
+                  <div className="overflow-y-auto flex-1 space-y-3 pr-2">
+                     {others.map((u, idx) => (
+                        <div key={u.id} className="flex justify-between items-center p-3 bg-white/80 rounded-xl shadow-sm hover:bg-white transition-colors">
+                           <div className="flex items-center gap-3">
+                              <span className="font-bold text-gray-500 w-6 text-right">{idx + 4}.</span>
+                              <span className="font-bold text-gray-800 truncate">{u.name}</span>
+                           </div>
+                           <span className="font-bold text-blue-600 whitespace-nowrap">{u.score} Pkt</span>
+                        </div>
+                     ))}
+                     {others.length === 0 && <p className="text-gray-500 text-sm text-center mt-10">Keine weiteren Teilnehmer.</p>}
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-gray-300/50 text-center">
+                     <button onClick={onAdminReset} className="w-full py-4 bg-gray-800/90 backdrop-blur-md text-white rounded-2xl font-bold hover:bg-gray-900 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-2">
+                       <RefreshCcw size={18} /> Neues Training starten
+                     </button>
+                  </div>
+               </div>
+
+               {/* Rechte Seite: Das Siegerpodest (Top 3) */}
+               <div className="w-full md:w-2/3 flex flex-col items-center justify-center p-4">
+                  <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-16 text-center drop-shadow-sm">Siegerpodest</h1>
+                  <div className="flex items-end justify-center gap-3 md:gap-6 w-full px-2 h-72 max-w-2xl mx-auto">
+                    <div className="flex flex-col items-center flex-1">
+                      <div className="glass-panel px-3 py-1 mb-2 text-center w-full">
+                         <p className="text-xs md:text-sm font-bold text-gray-800 truncate w-full">{top3[1]?.name || '-'}</p>
+                      </div>
+                      <div className="podium-2 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-3xl font-bold text-white drop-shadow-md">2</span></div>
+                    </div>
+                    <div className="flex flex-col items-center flex-1">
+                      <span className="text-yellow-500 mb-4 animate-bounce drop-shadow-lg"><Trophy size={64} /></span>
+                      <div className="glass-panel px-4 py-1.5 mb-2 text-center border-yellow-400/50 w-full">
+                         <p className="text-sm md:text-base font-bold text-gray-900 truncate w-full">{top3[0]?.name || '-'}</p>
+                      </div>
+                      <div className="podium-1 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-5xl font-bold text-white drop-shadow-md">1</span></div>
+                    </div>
+                    <div className="flex flex-col items-center flex-1">
+                      <div className="glass-panel px-3 py-1 mb-2 text-center w-full">
+                         <p className="text-xs md:text-sm font-bold text-gray-800 truncate w-full">{top3[2]?.name || '-'}</p>
+                      </div>
+                      <div className="podium-3 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-2xl font-bold text-white drop-shadow-md">3</span></div>
+                    </div>
+                  </div>
+               </div>
+            </div>
+         );
+      }
+
+      // Normales Layout für die Teilnehmer
       return (
         <div className="flex-1 flex flex-col items-center justify-center p-4 animate-in w-full max-w-xl mx-auto pb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12 text-center drop-shadow-sm">Top Ergebnisse</h1>
           <div className="flex items-end justify-center gap-3 md:gap-6 mb-12 w-full px-4 h-64">
             <div className="flex flex-col items-center flex-1">
-              <div className="glass-panel px-3 py-1 mb-2 text-center">
+              <div className="glass-panel px-3 py-1 mb-2 text-center w-full">
                  <p className="text-xs font-bold text-gray-800 truncate w-full">{top3[1]?.name || '-'}</p>
               </div>
               <div className="podium-2 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-3xl font-bold text-white drop-shadow-md">2</span></div>
             </div>
             <div className="flex flex-col items-center flex-1">
               <span className="text-yellow-500 mb-4 animate-bounce drop-shadow-lg"><Trophy size={64} /></span>
-              <div className="glass-panel px-4 py-1.5 mb-2 text-center border-yellow-400/50">
+              <div className="glass-panel px-4 py-1.5 mb-2 text-center border-yellow-400/50 w-full">
                  <p className="text-sm font-bold text-gray-900 truncate w-full">{top3[0]?.name || '-'}</p>
               </div>
               <div className="podium-1 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-5xl font-bold text-white drop-shadow-md">1</span></div>
             </div>
             <div className="flex flex-col items-center flex-1">
-              <div className="glass-panel px-3 py-1 mb-2 text-center">
+              <div className="glass-panel px-3 py-1 mb-2 text-center w-full">
                  <p className="text-xs font-bold text-gray-800 truncate w-full">{top3[2]?.name || '-'}</p>
               </div>
               <div className="podium-3 w-full flex items-center justify-center shadow-2xl border border-white/30"><span className="text-2xl font-bold text-white drop-shadow-md">3</span></div>
             </div>
           </div>
           
-          {user?.isAdmin ? (
-            <div className="mt-8 text-center relative z-20">
-              <button onClick={onAdminReset} className="px-10 py-4 bg-gray-800/90 backdrop-blur-md text-white rounded-2xl font-bold hover:bg-gray-900 active:scale-95 transition-all shadow-xl cursor-pointer pointer-events-auto">
-                Neues Training starten (Reset)
-              </button>
-            </div>
-          ) : (
-            <div className="glass-panel w-full p-8 text-center shadow-xl">
-              <p className="text-gray-500 font-bold uppercase text-[10px] mb-2 tracking-widest">Deine Leistung</p>
-              <p className="text-5xl font-bold text-blue-600 mb-2 drop-shadow-sm">{score} <span className="text-sm text-gray-400">Pkt</span></p>
-              <p className="text-gray-700 mt-4 font-medium">{name}, danke für deine Teilnahme!</p>
-            </div>
-          )}
+          <div className="glass-panel w-full p-8 text-center shadow-xl">
+            <p className="text-gray-500 font-bold uppercase text-[10px] mb-2 tracking-widest">Deine Leistung</p>
+            <p className="text-5xl font-bold text-blue-600 mb-2 drop-shadow-sm">{score} <span className="text-sm text-gray-400">Pkt</span></p>
+            <p className="text-gray-700 mt-4 font-medium">{name}, danke für deine Teilnahme!</p>
+          </div>
         </div>
       );
     };
@@ -456,7 +506,7 @@
                       let styleClass = `${colors.bg} ${colors.text}`;
 
                       if (reveal) {
-                         if (isCorrect) styleClass += " scale-105 shadow-2xl ring-4 ring-offset-2 ring-green-400";
+                         if (isCorrect) styleClass += " scale-105 shadow-xl ring-4 ring-offset-2 ring-green-400";
                          else styleClass += " opacity-40 grayscale";
                       }
 
@@ -487,6 +537,7 @@
                    <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center drop-shadow-sm">Bereit für den Start?</h2>
                    <p className="text-gray-600 text-center mb-8">Sag den Teilnehmern, sie sollen den Raum-Code <strong className="text-blue-700">{roomCode}</strong> eingeben.</p>
                    
+                   {/* DIESER BEREICH WIRD NUR VOM ADMIN GESEHEN */}
                    <div className="bg-white/40 backdrop-blur-sm p-6 rounded-2xl border border-white/60 shadow-sm">
                       <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Shuffle size={18}/> Trainings-Einstellungen</h3>
                       
@@ -543,7 +594,7 @@
                       </span>
                       <span className="font-bold text-gray-800 drop-shadow-sm">{u.name}</span>
                     </div>
-                    <span className="font-bold text-blue-700 drop-shadow-sm">{u.displayScore} <span className="text-[10px] text-gray-500">Pkt</span></span>
+                    <span className="font-bold text-blue-700 drop-shadow-sm">{u.score} <span className="text-[10px] text-gray-500">Pkt</span></span>
                   </div>
                 ))}
                 {sortedUsers.length === 0 && (
@@ -709,16 +760,11 @@
         
         setUserAnswer(idx); 
         
-        const activeQuestions = gameState.activeQuestions || [];
-        const isCorrect = idx >= 0 && activeQuestions[gameState.currentQuestionIndex].correct === idx;
-        
-        const isDouble = gameState.doublePoints?.[gameState.currentQuestionIndex];
-        const pointsToAward = isCorrect ? (isDouble ? 20 : 10) : 0;
-        
+        // PUNKTE WERDEN HIER NOCH NICHT VERGEBEN! (Nur die Antwort und Zeit gespeichert, um Spannung aufzubauen)
         await updateDoc(doc(db, 'artifacts', activeRoom, 'users', userId), { 
           lastAnswerIndex: idx,
-          [`answers.${gameState.currentQuestionIndex}`]: idx,
-          score: increment(pointsToAward) 
+          lastAnswerTime: Date.now(),
+          [`answers.${gameState.currentQuestionIndex}`]: idx
         });
       };
 
@@ -754,6 +800,38 @@
 
       const adminReveal = async () => {
         if (!activeRoom) return;
+
+        const activeQuestions = gameState.activeQuestions || [];
+        const currentQIndex = gameState.currentQuestionIndex || 0;
+        const currentQ = activeQuestions[currentQIndex];
+        const isDouble = gameState.doublePoints?.[currentQIndex];
+        const multiplier = isDouble ? 2 : 1;
+
+        // PUNKTE-BERECHNUNG NACH SCHNELLIGKEIT:
+        // Alle richtigen Antworten filtern und nach Zeit sortieren
+        const correctUsers = allUsers.filter(u => !u.isAdmin && u.lastAnswerIndex === currentQ.correct);
+        correctUsers.sort((a, b) => (a.lastAnswerTime || 0) - (b.lastAnswerTime || 0));
+
+        const updatePromises = [];
+
+        // Die Schnellen bekommen am meisten Punkte (100, 95, 90 ... mind. 5 Punkte)
+        correctUsers.forEach((u, i) => {
+          let pointsToAdd = Math.max(5, 100 - (i * 5)) * multiplier;
+          updatePromises.push(updateDoc(doc(db, 'artifacts', activeRoom, 'users', u.id), {
+             score: increment(pointsToAdd),
+             lastPointsEarned: pointsToAdd // Um den Teilnehmern zu zeigen, wie viel sie bekommen haben
+          }));
+        });
+
+        // Alle, die falsch oder gar nicht geantwortet haben, bekommen 0 Punkte auf dem Bildschirm angezeigt
+        const wrongUsers = allUsers.filter(u => !u.isAdmin && u.lastAnswerIndex !== currentQ.correct && u.lastAnswerIndex !== undefined && u.lastAnswerIndex !== null);
+        wrongUsers.forEach(u => {
+            updatePromises.push(updateDoc(doc(db, 'artifacts', activeRoom, 'users', u.id), {
+                lastPointsEarned: 0
+            }));
+        });
+
+        await Promise.all(updatePromises);
         await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { showResults: true }, { merge: true });
       };
 
@@ -790,25 +868,11 @@
         await setDoc(doc(db, 'artifacts', activeRoom, 'public', 'gameState'), { status: 'podium' }, { merge: true });
       };
 
-      const activeQuestions = gameState.activeQuestions || [];
-      const currentQIndex = gameState.currentQuestionIndex || 0;
-      const currentQ = activeQuestions[currentQIndex];
-      const isDoublePoints = gameState.doublePoints?.[currentQIndex];
-      const reveal = gameState.showResults;
-
-      const displayUsers = allUsers.map(u => {
-          let displayScore = u.score || 0;
-          if (gameState.status === 'running' && !reveal && u.answers && u.answers[currentQIndex] !== undefined) {
-              if (currentQ && u.answers[currentQIndex] === currentQ.correct) {
-                  displayScore -= (isDoublePoints ? 20 : 10);
-              }
-          }
-          return { ...u, displayScore };
-      }).sort((a, b) => b.displayScore - a.displayScore);
-
+      // Rangliste für die Anzeige
+      const displayUsers = [...allUsers].sort((a, b) => (b.score || 0) - (a.score || 0));
       const myIndex = displayUsers.findIndex(u => u.id === userId);
       const myRank = myIndex >= 0 ? myIndex + 1 : '-';
-      const myScore = myIndex >= 0 ? displayUsers[myIndex].displayScore : 0;
+      const myScore = myIndex >= 0 ? displayUsers[myIndex].score : 0;
 
       let content = null;
 
@@ -860,6 +924,7 @@
             isDoublePoints={gameState.doublePoints?.[gameState.currentQuestionIndex]} 
             myRank={myRank}
             myScore={myScore}
+            lastPointsEarned={allUsers.find(u => u.id === userId)?.lastPointsEarned || 0}
           />;
       } else if (step === 'feedback') {
         content = <FeedbackScreen onFinish={handleFinishFeedback} />;
